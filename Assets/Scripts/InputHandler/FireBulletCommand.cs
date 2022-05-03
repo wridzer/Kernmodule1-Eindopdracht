@@ -6,6 +6,6 @@ public class FireBulletCommand : ICommand
 {
     public void Execute(GameObject _actor)
     {
-        // fire bullet
+        Debug.Log("Fire bullet with damage: " + _actor.GetComponent<Player>().damage);
     }
 }

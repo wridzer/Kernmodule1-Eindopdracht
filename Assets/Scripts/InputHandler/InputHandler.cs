@@ -1,21 +1,23 @@
-using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class InputHandler : MonoBehaviour
+public class InputHandler
 {
-    public GameObject actor;
-    public Dictionary<string, ICommand> commands;
+    private GameObject actor;
+    private ICommand mouse0Command;
+    private ICommand spaceCommand;
+
+    public InputHandler(GameObject _actor, ICommand _mouse0, ICommand _spaceCommand)
+    {
+        actor = _actor;
+        mouse0Command = _mouse0;
+        spaceCommand = _spaceCommand;
+    }
 
     public void HandleInput()
     {
-        foreach (KeyValuePair<string, ICommand> entry in commands)
-        {
-            if (Input.GetKey(entry.Key))
-            {
-                entry.Value.Execute(actor);
-            }
-        }
+        if (Input.GetKeyDown(KeyCode.Mouse0)) mouse0Command.Execute(actor);
+        if (Input.GetKeyDown(KeyCode.Space)) spaceCommand.Execute(actor);
     }
 }
