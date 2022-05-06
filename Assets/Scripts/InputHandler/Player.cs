@@ -4,11 +4,14 @@ using UnityEngine;
 
 public class Player : MonoBehaviour
 {
-    private InputHandler inputHandler;
+    public CharacterController controller;
     public float damage;
-    public float jumpHeight;
-    public float speed = 1;
+    public float speed = 3f;
     
+    private InputHandler inputHandler;
+    private Vector3 velocity;
+
+
     void Start()
     {
         inputHandler = new InputHandler(gameObject, new FireBulletCommand(), new JumpCommand());
@@ -16,6 +19,12 @@ public class Player : MonoBehaviour
 
     void Update()
     {
-        inputHandler.HandleInput();
+        //inputHandler.HandleInput();
+        float xMove = Input.GetAxisRaw("Horizontal");
+        float zMove = Input.GetAxisRaw("Vertical");
+        
+        Vector3 move = transform.right * xMove + transform.forward * zMove;
+        
+        controller.Move(move * speed * Time.deltaTime);
     }
 }
