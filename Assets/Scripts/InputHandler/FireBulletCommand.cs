@@ -4,8 +4,8 @@ using UnityEngine;
 
 public class FireBulletCommand : ICommand
 {
-    public void Execute(GameObject _actor)
+    public void Execute(Player _player)
     {
-        Debug.Log("Fire bullet with damage: " + _actor.GetComponent<Player>().damage);
+        Debug.Log("Fire bullet with damage: " + _player.damage);
     }
 }

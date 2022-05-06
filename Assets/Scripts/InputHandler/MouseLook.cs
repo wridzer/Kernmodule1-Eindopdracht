@@ -7,12 +7,10 @@ public class MouseLook : MonoBehaviour
     public Transform playerBody;
     public float mouseSensitivity = 100f;
     private float angleX = 0;
-
-    private Rigidbody rb;
+    
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
-        rb = GetComponent<Rigidbody>();
     }
 
     void Update()
