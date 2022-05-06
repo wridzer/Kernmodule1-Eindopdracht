@@ -19,12 +19,6 @@ public class Player : MonoBehaviour
 
     void Update()
     {
-        //inputHandler.HandleInput();
-        float xMove = Input.GetAxisRaw("Horizontal");
-        float zMove = Input.GetAxisRaw("Vertical");
-        
-        Vector3 move = transform.right * xMove + transform.forward * zMove;
-        
-        controller.Move(move * speed * Time.deltaTime);
+        inputHandler.HandleInput();
     }
 }
