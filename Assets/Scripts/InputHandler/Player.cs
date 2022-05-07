@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,7 +9,7 @@ public class Player : MonoBehaviour
     public float damage;
     public float speed = 3f;
 
-    public Transform camera;
+    public Transform viewCamera;
     public float mouseSensitivity = 100f;
 
     private InputHandler inputHandler;
@@ -18,11 +19,18 @@ public class Player : MonoBehaviour
     void Start()
     {
         Cursor.lockState = CursorLockMode.Locked;
-        inputHandler = new InputHandler(this, new FireBulletCommand(), new JumpCommand());
+        AddInputHandler();
     }
 
     void Update()
     {
         inputHandler.HandleInput();
+    }
+
+    private void AddInputHandler()
+    {
+        inputHandler = new InputHandler(this);
+        inputHandler.AddCommand("mouse 0", InputTypeEnum.GetKeyDown, new FireBulletCommand());
+        inputHandler.AddCommand("space", InputTypeEnum.GetKeyDown, new JumpCommand());
     }
 }

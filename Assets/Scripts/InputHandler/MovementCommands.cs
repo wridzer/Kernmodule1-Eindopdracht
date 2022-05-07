@@ -4,6 +4,9 @@ using UnityEngine;
 
 public class MoveCommand : ICommand
 {
+    public InputTypeEnum InputType { get; set; }
+    public string Key { get; set; }
+
     public void Execute(Player _player)
     {
         float xMove = Input.GetAxisRaw("Horizontal");
@@ -17,6 +20,8 @@ public class MoveCommand : ICommand
 
 public class MouseViewCommand : ICommand
 {
+    public InputTypeEnum InputType { get; set; }
+    public string Key { get; set; }
     private float angleX = 0;
     
     public void Execute(Player _player)
@@ -27,7 +32,7 @@ public class MouseViewCommand : ICommand
         angleX -= mouseY;
         angleX = Mathf.Clamp(angleX, -90f, 90f);
 
-        _player.camera.transform.localRotation = Quaternion.Euler(angleX, 0f, 0f);
+        _player.viewCamera.transform.localRotation = Quaternion.Euler(angleX, 0f, 0f);
         _player.transform.Rotate(Vector3.up * mouseX);
     }
 }
