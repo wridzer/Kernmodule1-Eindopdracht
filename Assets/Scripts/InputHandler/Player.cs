@@ -30,6 +30,10 @@ public class Player : MonoBehaviour
     private void AddInputHandler()
     {
         inputHandler = new InputHandler(this);
+        inputHandler.AddCommand("Horizontal", InputTypeEnum.GetAxis, new HorizontalMoveCommand());
+        inputHandler.AddCommand("Vertical", InputTypeEnum.GetAxis, new VerticalMoveCommand());
+        inputHandler.AddCommand("Mouse Y", InputTypeEnum.GetAxis, new MouseYViewCommand());
+        inputHandler.AddCommand("Mouse X", InputTypeEnum.GetAxis, new MouseXViewCommand());
         inputHandler.AddCommand("mouse 0", InputTypeEnum.GetKeyDown, new FireBulletCommand());
         inputHandler.AddCommand("space", InputTypeEnum.GetKeyDown, new JumpCommand());
     }

@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class MoveCommand : ICommand
+public class HorizontalMoveCommand : ICommand
 {
     public InputTypeEnum InputType { get; set; }
     public string Key { get; set; }
@@ -10,15 +10,42 @@ public class MoveCommand : ICommand
     public void Execute(Player _player)
     {
         float xMove = Input.GetAxisRaw("Horizontal");
-        float zMove = Input.GetAxisRaw("Vertical");
 
-        Vector3 move = _player.transform.right * xMove + _player.transform.forward * zMove;
+        Vector3 move = _player.transform.right * xMove;
         
         _player.controller.Move(move * _player.speed * Time.deltaTime);
     }
 }
 
-public class MouseViewCommand : ICommand
+public class VerticalMoveCommand : ICommand
+{
+    public InputTypeEnum InputType { get; set; }
+    public string Key { get; set; }
+
+    public void Execute(Player _player)
+    {
+        float zMove = Input.GetAxisRaw("Vertical");
+
+        Vector3 move = _player.transform.forward * zMove;
+        
+        _player.controller.Move(move * _player.speed * Time.deltaTime);
+    }
+}
+
+public class MouseXViewCommand : ICommand
+{
+    public InputTypeEnum InputType { get; set; }
+    public string Key { get; set; }
+    
+    public void Execute(Player _player)
+    {
+        float mouseX = Input.GetAxis("Mouse X") * _player.mouseSensitivity * Time.deltaTime;
+
+        _player.transform.Rotate(Vector3.up * mouseX);
+    }
+}
+
+public class MouseYViewCommand : ICommand
 {
     public InputTypeEnum InputType { get; set; }
     public string Key { get; set; }
@@ -26,13 +53,11 @@ public class MouseViewCommand : ICommand
     
     public void Execute(Player _player)
     {
-        float mouseX = Input.GetAxis("Mouse X") * _player.mouseSensitivity * Time.deltaTime;
         float mouseY = Input.GetAxis("Mouse Y") * _player.mouseSensitivity * Time.deltaTime;
 
         angleX -= mouseY;
         angleX = Mathf.Clamp(angleX, -90f, 90f);
 
         _player.viewCamera.transform.localRotation = Quaternion.Euler(angleX, 0f, 0f);
-        _player.transform.Rotate(Vector3.up * mouseX);
     }
 }
