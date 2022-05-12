@@ -7,5 +7,4 @@ public enum BulletType
     BOUNCE = 1,
     EXPLODE = 2,
     BIG = 3
-    //types are split, bounce, explode, big
 }

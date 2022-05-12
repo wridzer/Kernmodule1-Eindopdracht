@@ -6,11 +6,11 @@ public class SplitDecorator : BulletDecorator
 {
     public SplitDecorator(int _damage) : base(_damage) { }
 
-    public override IBullet Decorate(IBullet bullet)
+    public override IGun Decorate(IGun _Gun)
     {
         Debug.Log("Splitting");
-        bullet.BulletTypes |= BulletType.SPLIT;
-        bullet.Damage += Damage;
-        return bullet;
+        _Gun.BulletTypes |= BulletType.SPLIT;
+        _Gun.BulletAmount++;
+        return _Gun;
     }
 }

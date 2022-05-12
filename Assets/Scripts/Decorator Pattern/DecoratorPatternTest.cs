@@ -8,12 +8,12 @@ public class DecoratorPatternTest : MonoBehaviour
     // Use this for initialization
     void Start()
     {
-        IBullet someBullet = new Bullet(5);
+        //IGun someBullet = new Bullet(5);
 
-        SplitDecorator splitDecorator = new SplitDecorator(5);
-        someBullet = splitDecorator.Decorate(someBullet);
+        //SplitDecorator splitDecorator = new SplitDecorator(5);
+        //someBullet = splitDecorator.Decorate(someBullet);
 
-        someBullet.Hit();
+        // someBullet.Hit();
     }
 
     // Update is called once per frame
