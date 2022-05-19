@@ -11,15 +11,20 @@ public class AIController : MonoBehaviour
     [SerializeField] private float speedWalk = 6;
     [SerializeField] private float speedRun = 9;
 
-    [SerializeField] private float viewRadius = 15;
-    [SerializeField] private float viewAngle = 90;
+    [SerializeField] private float viewRadius = 10;
+    [SerializeField] private float viewAngle = 75;
     
     [SerializeField] private LayerMask playerMask;
     [SerializeField] private LayerMask obstacleMask;
-    [SerializeField] private float meshResolution = 1f;
     
-    [SerializeField] private int edgeIterations = 4;
-    [SerializeField] private float edgeDistance = 0.5f;
+    [SerializeField]private Material agro;
+    [SerializeField]private Material passive;
+    [SerializeField]private MeshRenderer meshRenderer;
+    /// <summary>
+    /// [SerializeField] private float meshResolution = 1f;
+    /// [SerializeField] private int edgeIterations = 4;
+    /// [SerializeField] private float edgeDistance = 0.5f;
+    /// </summary>
 
     [SerializeField] private Transform[] waypoints;
     private int m_CurrentWaypointIndex;
@@ -33,6 +38,7 @@ public class AIController : MonoBehaviour
     private bool walkPlayerNear;
     private bool walkIsPatrol;
     private bool walkCaughtPlayer;
+    
     void Start()
     {
         m_PlayerPosition = Vector3.zero;
@@ -48,6 +54,7 @@ public class AIController : MonoBehaviour
         _navMeshAgent.isStopped = false;
         _navMeshAgent.speed = speedWalk;
         _navMeshAgent.SetDestination(waypoints[m_CurrentWaypointIndex].position);
+        meshRenderer.GetComponent<MeshRenderer>();
     }
 
     // Update is called once per frame
@@ -66,6 +73,7 @@ public class AIController : MonoBehaviour
 
     private void Chasing()
     {
+        meshRenderer.material = agro;
         walkPlayerNear = false;
         playerLastPosition = Vector3.zero;
 
@@ -93,6 +101,7 @@ public class AIController : MonoBehaviour
                         GameObject.FindGameObjectWithTag("Player").transform.position) >= 2.5f)
                 {
                     Stop();
+                    AttackPlayer();
                     walkWaitTime -= Time.deltaTime;
                 }
             }
@@ -100,6 +109,7 @@ public class AIController : MonoBehaviour
     }
     private void Patroling()
     {
+        meshRenderer.material = passive;
         if (walkPlayerNear)
         {
             if (walkTimeToRotate <= 0)
@@ -151,7 +161,7 @@ public class AIController : MonoBehaviour
         _navMeshAgent.speed = speed;
     }
 
-    private void CaughtPlayer()
+    private void AttackPlayer()
     {
         walkCaughtPlayer = true;
     }
