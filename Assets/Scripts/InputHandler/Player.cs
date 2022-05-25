@@ -7,7 +7,9 @@ public class Player : MonoBehaviour
 {
     public CharacterController controller;
     public float damage;
-    public float speed;
+    [NonSerialized]public float speed;
+    public float sprintSpeed;
+    public float walkSpeed;
     public float jumpHeight;
     public float gravityValue = -9.81f;
 
@@ -15,10 +17,10 @@ public class Player : MonoBehaviour
     public float mouseSensitivity = 100f;
 
     private InputHandler inputHandler;
-    public Vector3 playerVelocity;
+    [NonSerialized]public Vector3 playerVelocity;
     public float distToGround = 0.1f;
     
-    public Vector3 move;
+    [NonSerialized]public Vector3 move;
 
     void Start()
     {
@@ -42,6 +44,8 @@ public class Player : MonoBehaviour
         inputHandler.AddCommand("Mouse Y", InputTypeEnum.GetAxis, new MouseYViewCommand());
         inputHandler.AddCommand("Mouse X", InputTypeEnum.GetAxis, new MouseXViewCommand());
         inputHandler.AddCommand("space", InputTypeEnum.GetKey, new JumpCommand());
+        inputHandler.AddCommand("left shift", InputTypeEnum.GetKeyDown, new SprintCommand());
+        inputHandler.AddCommand("left shift", InputTypeEnum.GetKeyUp, new SprintReleaseCommand());
         inputHandler.AddCommand("mouse 0", InputTypeEnum.GetKeyDown, new FireBulletCommand());
     }
     

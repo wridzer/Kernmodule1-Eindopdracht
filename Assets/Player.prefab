@@ -49,12 +49,12 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   controller: {fileID: 1920439030706271044}
   damage: 2
-  speed: 5
+  sprintSpeed: 10
+  walkSpeed: 5
   jumpHeight: 6
   gravityValue: -9.81
   viewCamera: {fileID: 1920439032079509202}
-  mouseSensitivity: 1000
-  playerVelocity: {x: 0, y: 0, z: 0}
+  mouseSensitivity: 250
   distToGround: 0.1
 --- !u!54 &1920439030706271047
 Rigidbody:
