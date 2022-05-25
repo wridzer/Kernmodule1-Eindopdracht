@@ -363,7 +363,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1920439030706271046, guid: 9d5ccdf2a2b026b44bf46a493d12ac55, type: 3}
       propertyPath: m_LocalPosition.y
-      value: 1.95
+      value: 1.8
       objectReference: {fileID: 0}
     - target: {fileID: 1920439030706271046, guid: 9d5ccdf2a2b026b44bf46a493d12ac55, type: 3}
       propertyPath: m_LocalPosition.z
@@ -400,6 +400,10 @@ PrefabInstance:
     - target: {fileID: 1920439030706271048, guid: 9d5ccdf2a2b026b44bf46a493d12ac55, type: 3}
       propertyPath: m_Name
       value: Player
+      objectReference: {fileID: 0}
+    - target: {fileID: 1920439030706271049, guid: 9d5ccdf2a2b026b44bf46a493d12ac55, type: 3}
+      propertyPath: mouseSensitivity
+      value: 250
       objectReference: {fileID: 0}
     m_RemovedComponents: []
   m_SourcePrefab: {fileID: 100100000, guid: 9d5ccdf2a2b026b44bf46a493d12ac55, type: 3}

@@ -17,7 +17,8 @@ public class Player : MonoBehaviour
     private InputHandler inputHandler;
     public Vector3 playerVelocity;
     public float distToGround = 0.1f;
-
+    
+    public Vector3 move;
 
     void Start()
     {
@@ -28,8 +29,9 @@ public class Player : MonoBehaviour
 
     void Update()
     {
+        move = new Vector3();
         inputHandler.HandleInput();
-        GravityHandler();
+        UpdatePosition();
     }
 
     private void AddInputHandler()
@@ -39,12 +41,14 @@ public class Player : MonoBehaviour
         inputHandler.AddCommand("Vertical", InputTypeEnum.GetAxis, new VerticalMoveCommand());
         inputHandler.AddCommand("Mouse Y", InputTypeEnum.GetAxis, new MouseYViewCommand());
         inputHandler.AddCommand("Mouse X", InputTypeEnum.GetAxis, new MouseXViewCommand());
-        inputHandler.AddCommand("mouse 0", InputTypeEnum.GetKeyDown, new FireBulletCommand());
         inputHandler.AddCommand("space", InputTypeEnum.GetKey, new JumpCommand());
+        inputHandler.AddCommand("mouse 0", InputTypeEnum.GetKeyDown, new FireBulletCommand());
     }
     
-    void GravityHandler()
+    void UpdatePosition()
     {
+        controller.Move(move * speed * Time.deltaTime);
+        
         playerVelocity.y += gravityValue * Time.deltaTime;
         controller.Move(playerVelocity * Time.deltaTime);
         if (IsGrounded())

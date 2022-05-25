@@ -11,9 +11,7 @@ public class HorizontalMoveCommand : ICommand
     {
         float xMove = Input.GetAxisRaw("Horizontal");
 
-        Vector3 move = _player.transform.right * xMove;
-        
-        _player.controller.Move(move * _player.speed * Time.deltaTime);
+        _player.move += _player.transform.right * xMove;
     }
 }
 
@@ -26,9 +24,7 @@ public class VerticalMoveCommand : ICommand
     {
         float zMove = Input.GetAxisRaw("Vertical");
 
-        Vector3 move = _player.transform.forward * zMove;
-        
-        _player.controller.Move(move * _player.speed * Time.deltaTime);
+        _player.move += _player.transform.forward * zMove;
     }
 }
 

@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 
-public enum InputTypeEnum {GetKey, GetKeyDown, GetAxis}
+public enum InputTypeEnum {GetKey, GetKeyDown, GetKeyUp, GetAxis}
 
 public interface ICommand
 {

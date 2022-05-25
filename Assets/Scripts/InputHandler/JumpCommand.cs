@@ -7,7 +7,7 @@ public class JumpCommand : ICommand
 
     public void Execute(Player _player)
     {
-        if (Input.GetKey(KeyCode.Space) && _player.IsGrounded())
+        if (_player.IsGrounded())
         {
             _player.playerVelocity.y = _player.jumpHeight;
         }

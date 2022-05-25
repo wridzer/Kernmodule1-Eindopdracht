@@ -25,6 +25,9 @@ public class InputHandler
                 case InputTypeEnum.GetKeyDown:
                     if (Input.GetKeyDown(command.Key)) command.Execute(player);
                     break;
+                case InputTypeEnum.GetKeyUp:
+                    if (Input.GetKeyUp(command.Key)) command.Execute(player);
+                    break;
                 case InputTypeEnum.GetAxis:
                     if (Input.GetAxis(command.Key) != 0) command.Execute(player);
                     break;
