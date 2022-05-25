@@ -24,6 +24,7 @@ public class Player : MonoBehaviour
 
     void Start()
     {
+        speed = walkSpeed;
         Cursor.lockState = CursorLockMode.Locked;
         distToGround = controller.bounds.extents.y;
         AddInputHandler();
