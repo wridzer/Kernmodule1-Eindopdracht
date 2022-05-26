@@ -12,7 +12,7 @@ public interface IPoolable {
 
 public class ObjectPool<T> where T : IPoolable
 {
-    private List<T> activePool = new List<T>();
+    public List<T> activePool = new List<T>();
     private List<T> inactivePool = new List<T>();
 
     private T AddNewItemToPool() {
