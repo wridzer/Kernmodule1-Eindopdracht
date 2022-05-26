@@ -3,13 +3,15 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 
-public class AIController : MonoBehaviour
+public class AIController : MonoBehaviour, IDamageble
 {
+    float IDamageble.Health { get; set; }
     [SerializeField] private NavMeshAgent _navMeshAgent;
     [SerializeField] private float startWaitTime = 4;
     [SerializeField] private float timeToRotate = 2;
     [SerializeField] private float speedWalk = 6;
     [SerializeField] private float speedRun = 9;
+    [SerializeField] private int damage = 10;
 
     [SerializeField] private float viewRadius = 10;
     [SerializeField] private float viewAngle = 75;
@@ -22,39 +24,49 @@ public class AIController : MonoBehaviour
     [SerializeField]private MeshRenderer meshRenderer;
     
     [SerializeField] private Transform[] waypoints;
-    private int m_CurrentWaypointIndex;
+    private int currentWaypointIndex;
 
     private Vector3 playerLastPosition = Vector3.zero;
-    private Vector3 m_PlayerPosition;
+    private Vector3 keepPlayerPosition;
 
+    private GameObject player;
+    
     private float walkWaitTime;
     private float walkTimeToRotate;
     private bool walkPlayerInRange;
     private bool walkPlayerNear;
     private bool walkIsPatrol;
     private bool walkCaughtPlayer;
-    
+    private float _health;
+    private IDamageble _damagebleImplementation;
+
     void Start()
     {
-        m_PlayerPosition = Vector3.zero;
+        keepPlayerPosition = Vector3.zero;
         walkIsPatrol = true;
         walkCaughtPlayer = false;
         walkPlayerInRange = false;
         walkWaitTime = startWaitTime;
         walkTimeToRotate = timeToRotate;
 
-        m_CurrentWaypointIndex = 0;
+        player = GameObject.FindGameObjectWithTag("Player");
+        
+        currentWaypointIndex = 0;
         _navMeshAgent = GetComponent<NavMeshAgent>();
 
         _navMeshAgent.isStopped = false;
         _navMeshAgent.speed = speedWalk;
-        _navMeshAgent.SetDestination(waypoints[m_CurrentWaypointIndex].position);
+        _navMeshAgent.SetDestination(waypoints[currentWaypointIndex].position);
         meshRenderer.GetComponent<MeshRenderer>();
     }
 
     // Update is called once per frame
     void Update()
     {
+        if (_health >= 0)
+        {
+            Destroy(gameObject);
+        }
         EnviromentView();
         if (!walkIsPatrol)
         {
@@ -75,7 +87,7 @@ public class AIController : MonoBehaviour
         if (!walkCaughtPlayer)
         {
             Move(speedRun);
-            _navMeshAgent.SetDestination(m_PlayerPosition);
+            _navMeshAgent.SetDestination(keepPlayerPosition);
         }
 
         if (_navMeshAgent.remainingDistance <= _navMeshAgent.stoppingDistance)
@@ -88,7 +100,7 @@ public class AIController : MonoBehaviour
                 Move(speedWalk);
                 walkTimeToRotate = timeToRotate;
                 walkWaitTime = startWaitTime;
-                _navMeshAgent.SetDestination(waypoints[m_CurrentWaypointIndex].position);
+                _navMeshAgent.SetDestination(waypoints[currentWaypointIndex].position);
             }
             else
             {
@@ -122,7 +134,7 @@ public class AIController : MonoBehaviour
         {
             walkPlayerNear = false;
             playerLastPosition = Vector3.zero;
-            _navMeshAgent.SetDestination(waypoints[m_CurrentWaypointIndex].position);
+            _navMeshAgent.SetDestination(waypoints[currentWaypointIndex].position);
             if (_navMeshAgent.remainingDistance <= _navMeshAgent.stoppingDistance)
             {
                 if (walkWaitTime <= 0)
@@ -147,8 +159,8 @@ public class AIController : MonoBehaviour
 
     public void NextPoint()
     {
-        m_CurrentWaypointIndex = (m_CurrentWaypointIndex + 1) % waypoints.Length;
-        _navMeshAgent.SetDestination(waypoints[m_CurrentWaypointIndex].position);
+        currentWaypointIndex = (currentWaypointIndex + 1) % waypoints.Length;
+        _navMeshAgent.SetDestination(waypoints[currentWaypointIndex].position);
     }
     private void Move(float speed)
     {
@@ -159,6 +171,7 @@ public class AIController : MonoBehaviour
     private void AttackPlayer()
     {
         walkCaughtPlayer = true;
+        player.GetComponent<IDamageble>()?.TakeDamage(damage);
     }
 
     private void LookingPlayer(Vector3 player)
@@ -170,7 +183,7 @@ public class AIController : MonoBehaviour
             {
                 walkPlayerNear = false;
                 Move(speedWalk);
-                _navMeshAgent.SetDestination(waypoints[m_CurrentWaypointIndex].position);
+                _navMeshAgent.SetDestination(waypoints[currentWaypointIndex].position);
                 walkWaitTime = startWaitTime;
                 walkTimeToRotate = timeToRotate;
             }
@@ -210,10 +223,11 @@ public class AIController : MonoBehaviour
                 }
             if (walkPlayerInRange)
             {
-                m_PlayerPosition = player.transform.position;
+                keepPlayerPosition = player.transform.position;
             }
         }
 
 
     }
+    
 }
