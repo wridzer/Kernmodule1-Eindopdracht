@@ -23,13 +23,15 @@ public class AIController : MonoBehaviour, IDamageble
     [SerializeField]private Material passive;
     [SerializeField]private MeshRenderer meshRenderer;
     
+    [SerializeField]private GameObject player;
+    
     [SerializeField] private Transform[] waypoints;
     private int currentWaypointIndex;
 
     private Vector3 playerLastPosition = Vector3.zero;
     private Vector3 keepPlayerPosition;
 
-    private GameObject player;
+    
     
     private float walkWaitTime;
     private float walkTimeToRotate;
@@ -49,8 +51,6 @@ public class AIController : MonoBehaviour, IDamageble
         walkWaitTime = startWaitTime;
         walkTimeToRotate = timeToRotate;
 
-        player = GameObject.FindGameObjectWithTag("Player");
-        
         currentWaypointIndex = 0;
         _navMeshAgent = GetComponent<NavMeshAgent>();
 
@@ -93,7 +93,7 @@ public class AIController : MonoBehaviour, IDamageble
         if (_navMeshAgent.remainingDistance <= _navMeshAgent.stoppingDistance)
         {
             if (walkWaitTime <= 0 && !walkCaughtPlayer && Vector3.Distance(transform.position,
-                    GameObject.FindGameObjectWithTag("Player").transform.position) >= 6f)
+                    player.transform.position) >= 6f)
             {
                 walkIsPatrol = true;
                 walkPlayerNear = false;
@@ -105,7 +105,7 @@ public class AIController : MonoBehaviour, IDamageble
             else
             {
                 if (Vector3.Distance(transform.position,
-                        GameObject.FindGameObjectWithTag("Player").transform.position) >= 2.5f)
+                        player.transform.position) >= 2.5f)
                 {
                     Stop();
                     AttackPlayer();
@@ -201,11 +201,11 @@ public class AIController : MonoBehaviour, IDamageble
 
             for (int i = 0; i < playerInRange.Length; i++)
             {
-                Transform player = playerInRange[i].transform;
-                Vector3 dirToPlayer = (player.position - transform.position).normalized;
+                Transform _player = playerInRange[i].transform;
+                Vector3 dirToPlayer = (_player.position - transform.position).normalized;
                 if (Vector3.Angle(transform.forward, dirToPlayer) < viewAngle / 2)
                 {
-                    float dsToPlayer = Vector3.Distance(transform.position, player.position);
+                    float dsToPlayer = Vector3.Distance(transform.position, _player.position);
                     if (!Physics.Raycast(transform.position, dirToPlayer, dsToPlayer, obstacleMask))
                     {
                         walkPlayerInRange = true;
@@ -217,7 +217,7 @@ public class AIController : MonoBehaviour, IDamageble
                     }
                 }
 
-                if (Vector3.Distance(transform.position, player.position) > viewAngle)
+                if (Vector3.Distance(transform.position, _player.position) > viewAngle)
                 {
                     walkPlayerInRange = false;
                 }
