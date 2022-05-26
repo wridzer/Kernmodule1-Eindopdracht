@@ -11,5 +11,5 @@ public interface IBullet
     public BulletType BulletTypes { get; set; }
     void Hit(GameObject other);
 
-    void Shoot(Vector3 _Dir);
+    void Shoot(Vector3 _Dir, float _BulletForce);
 }

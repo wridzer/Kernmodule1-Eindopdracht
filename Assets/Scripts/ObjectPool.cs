@@ -3,14 +3,14 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public interface Ipoolable { 
+public interface IPoolable { 
     bool Active { get; set; }
     void Init();
     void OnEnableObject();
     void OnDisableObject();
 }
 
-public class ObjectPool<T> where T : Ipoolable
+public class ObjectPool<T> where T : IPoolable
 {
     private List<T> activePool = new List<T>();
     private List<T> inactivePool = new List<T>();

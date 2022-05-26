@@ -8,7 +8,6 @@ public class BounceDecorator : BulletDecorator
 
     public override IGun Decorate(IGun _Gun)
     {
-        Debug.Log("Splitting");
         _Gun.BulletTypes |= BulletType.BOUNCE;
         _Gun.BounceAmount++;
         return _Gun;
