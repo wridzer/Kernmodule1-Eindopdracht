@@ -20,12 +20,7 @@ public class AIController : MonoBehaviour
     [SerializeField]private Material agro;
     [SerializeField]private Material passive;
     [SerializeField]private MeshRenderer meshRenderer;
-    /// <summary>
-    /// [SerializeField] private float meshResolution = 1f;
-    /// [SerializeField] private int edgeIterations = 4;
-    /// [SerializeField] private float edgeDistance = 0.5f;
-    /// </summary>
-
+    
     [SerializeField] private Transform[] waypoints;
     private int m_CurrentWaypointIndex;
 
