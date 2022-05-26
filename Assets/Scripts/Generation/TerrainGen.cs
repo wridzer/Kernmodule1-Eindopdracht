@@ -118,6 +118,8 @@ public class TerrainGen : MonoBehaviour {
             }
         }
 
+        yield return new WaitForEndOfFrame();
+
         //Create Cubes
         for (int i = 0; i < gridPositions.Count; i++) {
             if (takenPositions.Contains(gridPositions[i])) {
