@@ -231,7 +231,7 @@ public class TerrainGen : MonoBehaviour {
     }
 }
 
-public class CubeClass : Ipoolable {
+public class CubeClass : IPoolable {
     public bool Active { get; set; }
 
     public GameObject thisObject;
@@ -243,7 +243,7 @@ public class CubeClass : Ipoolable {
     public void OnDisableObject() { }
 }
 
-public class ChunkClass : Ipoolable {
+public class ChunkClass : IPoolable {
     public bool Active { get; set; }
 
     public GameObject thisObject;

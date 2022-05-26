@@ -6,7 +6,7 @@ using UnityEngine;
 public class Player : MonoBehaviour, IDamageble
 {
     float IDamageble.Health { get; set; }
-    
+
     public CharacterController controller;
     public float damage;
     [NonSerialized]public float speed;

@@ -199,35 +199,34 @@ public class AIController : MonoBehaviour, IDamageble
     {
         Collider[] playerInRange = Physics.OverlapSphere(transform.position, viewRadius, playerMask);
 
-            for (int i = 0; i < playerInRange.Length; i++)
+        for (int i = 0; i < playerInRange.Length; i++)
+        {
+            Transform player = playerInRange[i].transform;
+            Vector3 dirToPlayer = (player.position - transform.position).normalized;
+            if (Vector3.Angle(transform.forward, dirToPlayer) < viewAngle / 2)
             {
-                Transform player = playerInRange[i].transform;
-                Vector3 dirToPlayer = (player.position - transform.position).normalized;
-                if (Vector3.Angle(transform.forward, dirToPlayer) < viewAngle / 2)
+                float dsToPlayer = Vector3.Distance(transform.position, player.position);
+                if (!Physics.Raycast(transform.position, dirToPlayer, dsToPlayer, obstacleMask))
                 {
-                    float dsToPlayer = Vector3.Distance(transform.position, player.position);
-                    if (!Physics.Raycast(transform.position, dirToPlayer, dsToPlayer, obstacleMask))
-                    {
-                        walkPlayerInRange = true;
-                        walkIsPatrol = false;
-                    }
-                    else
-                    {
-                        walkPlayerInRange = false;
-                    }
+                    walkPlayerInRange = true;
+                    walkIsPatrol = false;
                 }
-
-                if (Vector3.Distance(transform.position, player.position) > viewAngle)
+                else
                 {
                     walkPlayerInRange = false;
                 }
+            }
+
+            if (Vector3.Distance(transform.position, player.position) > viewAngle)
+            {
+                walkPlayerInRange = false;
+            }
+
             if (walkPlayerInRange)
             {
                 keepPlayerPosition = player.transform.position;
             }
         }
-
-
     }
     
 }
