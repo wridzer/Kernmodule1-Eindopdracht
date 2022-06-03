@@ -16,9 +16,14 @@ public class BaseGun : MonoBehaviour, IGun
     public GameObject bulletPrefab, gunPoint;
     public float bulletSpeed, growMultiplier;
 
+    private ObjectPool<PoolableGameobject> bulletPool;
+
     private void Start()
     {
         BulletPrefab = bulletPrefab;
+        bulletPool = new ObjectPool<PoolableGameobject>();
+        PoolableGameobject poolableBullet = new PoolableGameobject();
+        poolableBullet.prefab = bulletPrefab;
     }
 
     public void Shoot()
@@ -26,6 +31,8 @@ public class BaseGun : MonoBehaviour, IGun
         for(float i = 0; i < BulletAmount; i++)
         {
             GameObject newBullet = Instantiate(bulletPrefab, gunPoint.transform.position, new Quaternion()); // OBJECTPOOL HERE
+            // PoolableGameobject newBullet = bulletPool.GetObjectFromPool();
+            // newBullet.prefab = bulletPrefab;
             newBullet.transform.position = gunPoint.transform.position;
             newBullet.transform.localScale = new Vector3(
                 transform.localScale.x * (GrowAmount * growMultiplier),

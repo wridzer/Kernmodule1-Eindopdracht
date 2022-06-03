@@ -16,6 +16,8 @@ public class Bullet : MonoBehaviour, IBullet
 
     private Rigidbody rb;
 
+    private ObjectPool<PoolableGameobject> pool;
+
     public Bullet(int _damage)
     {
         Damage = _damage;
