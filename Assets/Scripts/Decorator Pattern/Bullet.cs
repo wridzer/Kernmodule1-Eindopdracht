@@ -2,7 +2,7 @@
 using UnityEngine;
 
 
-public class Bullet : MonoBehaviour, IBullet
+public class Bullet : MonoBehaviour, IBullet, IPoolable
 {
     [SerializeField] private float ExplodeDamage, lifetime;
     [SerializeField] private GameObject ExplodePrefab;
@@ -15,8 +15,6 @@ public class Bullet : MonoBehaviour, IBullet
     public bool Active { get; set; }
 
     private Rigidbody rb;
-
-    private ObjectPool<PoolableGameobject> pool;
 
     public Bullet(int _damage)
     {
@@ -92,5 +90,20 @@ public class Bullet : MonoBehaviour, IBullet
                 Destroy(gameObject);    // OBJECTPOOL HERE
             }
         }
+    }
+
+    public void Init()
+    {
+        // TODO
+    }
+
+    public void OnEnableObject()
+    {
+        gameObject.SetActive(true);
+    }
+
+    public void OnDisableObject()
+    {
+        gameObject.SetActive(false);
     }
 }

@@ -15,24 +15,26 @@ public class BaseGun : MonoBehaviour, IGun
 
     public GameObject bulletPrefab, gunPoint;
     public float bulletSpeed, growMultiplier;
+    public PrefabObject prefabs;
 
-    private ObjectPool<PoolableGameobject> bulletPool;
+    private ObjectPoolMono<Bullet> bulletPool;
 
     private void Start()
     {
         BulletPrefab = bulletPrefab;
-        bulletPool = new ObjectPool<PoolableGameobject>();
-        PoolableGameobject poolableBullet = new PoolableGameobject();
-        poolableBullet.prefab = bulletPrefab;
+        bulletPool = new ObjectPoolMono<Bullet>(prefabs);
+        // PoolableBullet poolableBullet = new PoolableBullet();
+        // poolableBullet.prefab = bulletPrefab;
     }
 
     public void Shoot()
     {
         for(float i = 0; i < BulletAmount; i++)
         {
-            GameObject newBullet = Instantiate(bulletPrefab, gunPoint.transform.position, new Quaternion()); // OBJECTPOOL HERE
-            // PoolableGameobject newBullet = bulletPool.GetObjectFromPool();
+            //GameObject newBullet = Instantiate(bulletPrefab, gunPoint.transform.position, new Quaternion()); // OBJECTPOOL HERE
+            // PoolableBullet newBullet = bulletPool.GetObjectFromPool();
             // newBullet.prefab = bulletPrefab;
+            Bullet newBullet = bulletPool.GetObjectFromPool();
             newBullet.transform.position = gunPoint.transform.position;
             newBullet.transform.localScale = new Vector3(
                 transform.localScale.x * (GrowAmount * growMultiplier),
