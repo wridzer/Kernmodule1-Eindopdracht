@@ -3,8 +3,10 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public class Player : MonoBehaviour
+public class Player : MonoBehaviour, IDamageble
 {
+    float IDamageble.Health { get; set; }
+
     public CharacterController controller;
     public float damage;
     [NonSerialized]public float speed;
@@ -22,12 +24,16 @@ public class Player : MonoBehaviour
     
     [NonSerialized]public Vector3 move;
 
+    public IGun gun;
+
+
     void Start()
     {
         speed = walkSpeed;
         Cursor.lockState = CursorLockMode.Locked;
         distToGround = controller.bounds.extents.y;
         AddInputHandler();
+        gun = GetComponentInChildren<IGun>();
     }
 
     void Update()

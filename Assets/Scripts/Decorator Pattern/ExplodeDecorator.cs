@@ -8,7 +8,6 @@ public class ExplodeDecorator : BulletDecorator
 
     public override IGun Decorate(IGun _Gun)
     {
-        Debug.Log("Splitting");
         _Gun.BulletTypes |= BulletType.EXPLODE;
         _Gun.ExplodeRadius++;
         return _Gun;

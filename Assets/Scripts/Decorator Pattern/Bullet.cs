@@ -4,23 +4,31 @@ using UnityEngine;
 
 public class Bullet : MonoBehaviour, IBullet
 {
-    [SerializeField] private int ExplodeDamage = 10;
+    [SerializeField] private float ExplodeDamage, lifetime;
+    [SerializeField] private GameObject ExplodePrefab;
+    private Vector3 hitPos;
 
     public int Damage { get; set; }
     public int ExplodeRadius { get; set; }
     public int BounceAmount { get; set; }
     public BulletType BulletTypes { get; set; }
+    public bool Active { get; set; }
 
     private Rigidbody rb;
+
+    private ObjectPool<PoolableGameobject> pool;
 
     public Bullet(int _damage)
     {
         Damage = _damage;
     }
 
-    private void Start()
+    private void Update()
     {
-        rb = GetComponent<Rigidbody>();
+        lifetime -= Time.deltaTime;
+        if (lifetime <= 0) {
+            Destroy(gameObject);    // OBJECTPOOL HERE
+        }
     }
 
     //hit for enim and bounce and explode
@@ -31,21 +39,28 @@ public class Bullet : MonoBehaviour, IBullet
         Debug.Log("Damage done is: " + Damage + " to " + other.name);
     }
 
-    public void Shoot(Vector3 _Dir)
+    public void Shoot(Vector3 _Dir, float _BulletForce)
     {
-        rb.AddForce(_Dir);
+        rb = GetComponent<Rigidbody>();
+        rb.transform.eulerAngles = _Dir;
+        rb.AddForce(rb.transform.forward * _BulletForce);
     }
 
     private void Bounce(GameObject other)
     {
+        BounceAmount -= 1;
         rb.AddForce(Vector3.Reflect(transform.position, other.transform.forward));
     }
 
     private void Explode()
     {
+        GameObject explosion = Instantiate(ExplodePrefab);
+        explosion.transform.position = hitPos;
+        explosion.transform.localScale = new Vector3(ExplodeRadius, ExplodeRadius, ExplodeRadius);
+
         RaycastHit[] hit;
 
-        hit = Physics.SphereCastAll(transform.position, ExplodeRadius, Vector3.zero);
+        hit = Physics.SphereCastAll(hitPos, ExplodeRadius, Vector3.zero);
         foreach(RaycastHit raycastHit in hit)
         {
             raycastHit.collider.GetComponent<IDamageble>()?.TakeDamage(ExplodeDamage);
@@ -54,6 +69,7 @@ public class Bullet : MonoBehaviour, IBullet
 
     private void OnCollisionEnter(Collision collision)
     {
+        hitPos = transform.position;
         if (collision.gameObject.GetComponent<IDamageble>() != null)
         {
             Hit(collision.gameObject);

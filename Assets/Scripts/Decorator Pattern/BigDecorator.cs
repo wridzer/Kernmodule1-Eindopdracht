@@ -8,7 +8,6 @@ public class BigDecorator : BulletDecorator
 
     public override IGun Decorate(IGun _Gun)
     {
-        Debug.Log("Splitting");
         _Gun.BulletTypes |= BulletType.BIG;
         _Gun.GrowAmount++;
         return _Gun;

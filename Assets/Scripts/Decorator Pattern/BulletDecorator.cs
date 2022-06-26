@@ -2,7 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 
-public abstract class BulletDecorator
+public abstract class BulletDecorator : MonoBehaviour
 {
     public int Damage { get; set; }
 
@@ -12,4 +12,16 @@ public abstract class BulletDecorator
     }
 
     public abstract IGun Decorate(IGun _Gun);
+
+    protected void OnTriggerEnter(Collider other)
+    {
+        IGun gun = other.gameObject.GetComponent<Player>()?.gun;
+
+        if (gun != null)
+        {
+            Decorate(gun);
+            Destroy(gameObject); // OBJECT POOL??        
+        }
+
+    }
 }
