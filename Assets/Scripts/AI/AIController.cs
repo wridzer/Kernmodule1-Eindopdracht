@@ -1,11 +1,13 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
+using Random = UnityEngine.Random;
 
-public class AIController : MonoBehaviour, IDamageble
+public class AIController : MonoBehaviour//, IDamageble
 {
-    float IDamageble.Health { get; set; }
+    //float IDamageble.Health { get; set; }
     [SerializeField] private NavMeshAgent _navMeshAgent;
     [SerializeField] private float startWaitTime = 4;
     [SerializeField] private float timeToRotate = 2;
@@ -24,12 +26,17 @@ public class AIController : MonoBehaviour, IDamageble
     [SerializeField]private MeshRenderer meshRenderer;
     
     [SerializeField]private GameObject player;
-    
-    [SerializeField] private Transform[] waypoints;
+    [SerializeField]private GameObject patrolRangeObject;
+    [SerializeField]private Bounds patrolPointRange;
+    [SerializeField]private Vector3 waypoint;
+    [SerializeField]private NavigationBaker navUpdater;
+
+    //[SerializeField] private Transform[] waypoints;
     private int currentWaypointIndex;
 
     private Vector3 playerLastPosition = Vector3.zero;
     private Vector3 keepPlayerPosition;
+    private Vector3 moveto;
 
     
     
@@ -39,8 +46,10 @@ public class AIController : MonoBehaviour, IDamageble
     private bool walkPlayerNear;
     private bool walkIsPatrol;
     private bool walkCaughtPlayer;
+    public bool attackingPlayer;
+    private bool canAttack;
     private float _health;
-    private IDamageble _damagebleImplementation;
+    //private IDamageble _damagebleImplementation;
 
     void Start()
     {
@@ -53,19 +62,27 @@ public class AIController : MonoBehaviour, IDamageble
 
         currentWaypointIndex = 0;
         _navMeshAgent = GetComponent<NavMeshAgent>();
+        SetBounds(patrolRangeObject);
 
         _navMeshAgent.isStopped = false;
         _navMeshAgent.speed = speedWalk;
-        _navMeshAgent.SetDestination(waypoints[currentWaypointIndex].position);
+        SetRandomDestination();
+        _navMeshAgent.SetDestination(waypoint);
         meshRenderer.GetComponent<MeshRenderer>();
+    }
+
+    private void Awake()
+    {
+        navUpdater.UpdateGrid();
     }
 
     // Update is called once per frame
     void Update()
     {
-        if (_health >= 0)
+        Debug.Log(Vector3.Distance(transform.position, player.transform.position));
+        if (_health <= 0)
         {
-            Destroy(gameObject);
+            //Destroy(gameObject);
         }
         EnviromentView();
         if (!walkIsPatrol)
@@ -89,9 +106,22 @@ public class AIController : MonoBehaviour, IDamageble
             Move(speedRun);
             _navMeshAgent.SetDestination(keepPlayerPosition);
         }
-
-        if (_navMeshAgent.remainingDistance <= _navMeshAgent.stoppingDistance)
+        
+        if (Vector3.Distance(transform.position, player.transform.position) <= 4.0f)
         {
+            walkCaughtPlayer = true;
+            canAttack = true;
+            AttackPlayer();
+        }
+        else
+        {
+            canAttack = false;
+            walkCaughtPlayer = false;
+        }
+        
+        if (_navMeshAgent.remainingDistance <= _navMeshAgent.stoppingDistance && !canAttack)
+        {
+            attackingPlayer = false;
             if (walkWaitTime <= 0 && !walkCaughtPlayer && Vector3.Distance(transform.position,
                     player.transform.position) >= 6f)
             {
@@ -100,7 +130,7 @@ public class AIController : MonoBehaviour, IDamageble
                 Move(speedWalk);
                 walkTimeToRotate = timeToRotate;
                 walkWaitTime = startWaitTime;
-                _navMeshAgent.SetDestination(waypoints[currentWaypointIndex].position);
+                _navMeshAgent.SetDestination(waypoint);
             }
             else
             {
@@ -108,9 +138,10 @@ public class AIController : MonoBehaviour, IDamageble
                         player.transform.position) >= 2.5f)
                 {
                     Stop();
-                    AttackPlayer();
+                    walkCaughtPlayer = false;
                     walkWaitTime -= Time.deltaTime;
-                }
+                    
+                } 
             }
         }
     }
@@ -134,12 +165,12 @@ public class AIController : MonoBehaviour, IDamageble
         {
             walkPlayerNear = false;
             playerLastPosition = Vector3.zero;
-            _navMeshAgent.SetDestination(waypoints[currentWaypointIndex].position);
+            _navMeshAgent.SetDestination(waypoint);
             if (_navMeshAgent.remainingDistance <= _navMeshAgent.stoppingDistance)
             {
                 if (walkWaitTime <= 0)
                 {
-                    NextPoint();
+                    SetRandomDestination();
                     Move(speedWalk);
                     walkWaitTime = startWaitTime;
                 }
@@ -156,12 +187,6 @@ public class AIController : MonoBehaviour, IDamageble
         _navMeshAgent.isStopped = true;
         _navMeshAgent.speed = 0;
     }
-
-    public void NextPoint()
-    {
-        currentWaypointIndex = (currentWaypointIndex + 1) % waypoints.Length;
-        _navMeshAgent.SetDestination(waypoints[currentWaypointIndex].position);
-    }
     private void Move(float speed)
     {
         _navMeshAgent.isStopped = false;
@@ -170,20 +195,23 @@ public class AIController : MonoBehaviour, IDamageble
 
     private void AttackPlayer()
     {
-        walkCaughtPlayer = true;
-        player.GetComponent<IDamageble>()?.TakeDamage(damage);
+        Stop();
+        attackingPlayer = true;
+        //walkCaughtPlayer = true;
+        //player.GetComponent<IDamageble>()?.TakeDamage(damage);
     }
 
     private void LookingPlayer(Vector3 player)
     {
-        _navMeshAgent.SetDestination(player);
+    _navMeshAgent.SetDestination(player);
         if (Vector3.Distance(transform.position, player) < 0.3)
         {
             if (walkWaitTime <= 0)
             {
                 walkPlayerNear = false;
                 Move(speedWalk);
-                _navMeshAgent.SetDestination(waypoints[currentWaypointIndex].position);
+                SetRandomDestination();
+                _navMeshAgent.SetDestination(waypoint);
                 walkWaitTime = startWaitTime;
                 walkTimeToRotate = timeToRotate;
             }
@@ -205,29 +233,41 @@ public class AIController : MonoBehaviour, IDamageble
                 Vector3 dirToPlayer = (_player.position - transform.position).normalized;
                 if (Vector3.Angle(transform.forward, dirToPlayer) < viewAngle / 2)
                 {
-                    float dsToPlayer = Vector3.Distance(transform.position, _player.position);
-                    if (!Physics.Raycast(transform.position, dirToPlayer, dsToPlayer, obstacleMask))
-                    {
-                        walkPlayerInRange = true;
-                        walkIsPatrol = false;
+                        float dsToPlayer = Vector3.Distance(transform.position, _player.position);
+                        if (!Physics.Raycast(transform.position, dirToPlayer, dsToPlayer, obstacleMask))
+                        {
+                            walkPlayerInRange = true;
+                            walkIsPatrol = false;
+                        }
+                        else
+                        {
+                            walkPlayerInRange = false;
+                            walkIsPatrol = true;
+                        }
                     }
-                    else
+
+                    if (Vector3.Distance(transform.position, _player.position) > viewAngle)
                     {
                         walkPlayerInRange = false;
                     }
-                }
-
-                if (Vector3.Distance(transform.position, _player.position) > viewAngle)
-                {
-                    walkPlayerInRange = false;
-                }
-            if (walkPlayerInRange)
-            {
-                keepPlayerPosition = player.transform.position;
+                    if (walkPlayerInRange)
+                    {
+                        keepPlayerPosition = player.transform.position;
+                    }
             }
-        }
-
-
     }
-    
+
+    private void SetRandomDestination()
+    {
+        float randomX = Random.Range(patrolPointRange.min.x, patrolPointRange.max.x);
+        float randomZ = Random.Range(patrolPointRange.min.z, patrolPointRange.max.z);
+        moveto= new Vector3(randomX, this.transform.position.y, randomZ);
+        waypoint = moveto;
+        _navMeshAgent.SetDestination(waypoint);
+    }
+
+    public void SetBounds(GameObject boundsObject)
+    {
+        patrolPointRange = boundsObject.GetComponent<Renderer>().bounds;
+    }
 }
