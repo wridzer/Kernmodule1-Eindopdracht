@@ -6,8 +6,7 @@ using UnityEngine.AI;
 
 public class NavigationBaker : MonoBehaviour {
 
-    [SerializeField]private NavMeshSurface[] surfaces;
-
+    public NavMeshSurface[] surfaces;
     // Use this for initialization
     public void UpdateGrid () 
     {
@@ -16,5 +15,4 @@ public class NavigationBaker : MonoBehaviour {
             surfaces [i].BuildNavMesh();    
         }
     }
-
 }

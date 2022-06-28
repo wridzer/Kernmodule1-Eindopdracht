@@ -26,10 +26,7 @@ public class AIController : MonoBehaviour//, IDamageble
     [SerializeField]private MeshRenderer meshRenderer;
     
     [SerializeField]private GameObject player;
-    [SerializeField]private GameObject patrolRangeObject;
-    [SerializeField]private Bounds patrolPointRange;
     [SerializeField]private Vector3 waypoint;
-    [SerializeField]private NavigationBaker navUpdater;
 
     //[SerializeField] private Transform[] waypoints;
     private int currentWaypointIndex;
@@ -46,9 +43,9 @@ public class AIController : MonoBehaviour//, IDamageble
     private bool walkPlayerNear;
     private bool walkIsPatrol;
     private bool walkCaughtPlayer;
-    public bool attackingPlayer;
+    private bool attackingPlayer;
     private bool canAttack;
-    private float _health;
+    private float health;
     //private IDamageble _damagebleImplementation;
 
     void Start()
@@ -62,25 +59,24 @@ public class AIController : MonoBehaviour//, IDamageble
 
         currentWaypointIndex = 0;
         _navMeshAgent = GetComponent<NavMeshAgent>();
-        SetBounds(patrolRangeObject);
 
         _navMeshAgent.isStopped = false;
         _navMeshAgent.speed = speedWalk;
-        SetRandomDestination();
+        SetRandomDestination(transform.position, 10);
         _navMeshAgent.SetDestination(waypoint);
         meshRenderer.GetComponent<MeshRenderer>();
     }
 
     private void Awake()
     {
-        navUpdater.UpdateGrid();
+        
     }
 
     // Update is called once per frame
     void Update()
     {
         Debug.Log(Vector3.Distance(transform.position, player.transform.position));
-        if (_health <= 0)
+        if (health <= 0)
         {
             //Destroy(gameObject);
         }
@@ -170,7 +166,7 @@ public class AIController : MonoBehaviour//, IDamageble
             {
                 if (walkWaitTime <= 0)
                 {
-                    SetRandomDestination();
+                    SetRandomDestination(transform.position, 10);
                     Move(speedWalk);
                     walkWaitTime = startWaitTime;
                 }
@@ -210,7 +206,7 @@ public class AIController : MonoBehaviour//, IDamageble
             {
                 walkPlayerNear = false;
                 Move(speedWalk);
-                SetRandomDestination();
+                SetRandomDestination(transform.position, 10);
                 _navMeshAgent.SetDestination(waypoint);
                 walkWaitTime = startWaitTime;
                 walkTimeToRotate = timeToRotate;
@@ -257,17 +253,18 @@ public class AIController : MonoBehaviour//, IDamageble
             }
     }
 
-    private void SetRandomDestination()
-    {
-        float randomX = Random.Range(patrolPointRange.min.x, patrolPointRange.max.x);
-        float randomZ = Random.Range(patrolPointRange.min.z, patrolPointRange.max.z);
-        moveto= new Vector3(randomX, this.transform.position.y, randomZ);
-        waypoint = moveto;
-        _navMeshAgent.SetDestination(waypoint);
-    }
+    private Vector3 SetRandomDestination(Vector3 pos, float radius) {
+        Vector3 randomDirection = Random.insideUnitSphere * radius;
+        randomDirection += pos;
+        Vector3 finalPosition = Vector3.zero;
 
-    public void SetBounds(GameObject boundsObject)
-    {
-        patrolPointRange = boundsObject.GetComponent<Renderer>().bounds;
+        if (NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, radius, 1)) {
+            finalPosition = hit.position;
+        }
+        return finalPosition;
+        /*float randomX = Random.Range(patrolPointRange.min.x, patrolPointRange.max.x);
+        float randomZ = Random.Range(patrolPointRange.min.z, patrolPointRange.max.z);
+        waypoint = new Vector3(randomX, this.transform.position.y, randomZ);*/
+        _navMeshAgent.SetDestination(waypoint);
     }
 }

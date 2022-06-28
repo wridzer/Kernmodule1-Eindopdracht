@@ -490,7 +490,6 @@ GameObject:
   - component: {fileID: 880720594}
   - component: {fileID: 880720593}
   - component: {fileID: 880720592}
-  - component: {fileID: 880720595}
   m_Layer: 0
   m_Name: Main Camera
   m_TagString: MainCamera
@@ -564,20 +563,6 @@ Transform:
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &880720595
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 880720591}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 30ef41139ac1e604db2f2f1f51585ae4, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  surfaces:
-  - {fileID: 662411995}
 --- !u!1 &1000652060
 GameObject:
   m_ObjectHideFlags: 0
@@ -1063,7 +1048,7 @@ PrefabInstance:
     - target: {fileID: 1294568607052171972, guid: f358689e8240c0f4bac31c266fc4348e, type: 3}
       propertyPath: navUpdater
       value: 
-      objectReference: {fileID: 880720595}
+      objectReference: {fileID: 0}
     - target: {fileID: 1294568607052171972, guid: f358689e8240c0f4bac31c266fc4348e, type: 3}
       propertyPath: patrolRangeObject
       value: 
