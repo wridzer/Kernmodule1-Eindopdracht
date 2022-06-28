@@ -261,6 +261,11 @@ public class AIController : MonoBehaviour//, IDamageble
         if (NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, radius, 1)) {
             finalPosition = hit.position;
         }
+
+        if (finalPosition == Vector3.zero)
+        {
+            
+        }
         return finalPosition;
         /*float randomX = Random.Range(patrolPointRange.min.x, patrolPointRange.max.x);
         float randomZ = Random.Range(patrolPointRange.min.z, patrolPointRange.max.z);
