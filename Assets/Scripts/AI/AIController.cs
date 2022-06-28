@@ -1,4 +1,5 @@
 using System;
+using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEditor.Build.Content;
@@ -34,7 +35,8 @@ public class AIController : MonoBehaviour, Ipoolable//, IDamageble
     [SerializeField]private GameObject player;
     [SerializeField]private Vector3 waypoint;
 
-    //[SerializeField] private Transform[] waypoints;
+    //[HideInInspector] public TerrainGen owner;
+    
     private int currentWaypointIndex;
 
     private Vector3 playerLastPosition = Vector3.zero;
@@ -92,7 +94,7 @@ public class AIController : MonoBehaviour, Ipoolable//, IDamageble
     public void Init()
     {
         Init();
-        //Player = GameManager.Instance.Player;
+        //player = GameManager.instance.player;
     }
     
 
@@ -286,6 +288,12 @@ public class AIController : MonoBehaviour, Ipoolable//, IDamageble
 
         if (NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, radius, 1)) {
             finalPosition = hit.position;
+        }
+
+        if (finalPosition == Vector3.zero)
+        {
+            //owner.DespawnEnemy(this);
+            return Vector3.zero;
         }
         return finalPosition;
         /*float randomX = Random.Range(patrolPointRange.min.x, patrolPointRange.max.x);
