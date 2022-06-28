@@ -6,13 +6,8 @@ using UnityEditor.Build.Content;
 using UnityEngine;
 using UnityEngine.AI;
 using Random = UnityEngine.Random;
-public interface Ipoolable { 
-    bool Active { get; set; }
-    void Init();
-    void OnEnableObject();
-    void OnDisableObject();
-}
-public class AIController : MonoBehaviour, Ipoolable//, IDamageble
+
+public class AIController : MonoBehaviour//, IDamageble
 {
     //float IDamageble.Health { get; set; }
     [SerializeField] private NavMeshAgent navMeshAgent;
@@ -41,10 +36,7 @@ public class AIController : MonoBehaviour, Ipoolable//, IDamageble
 
     private Vector3 playerLastPosition = Vector3.zero;
     private Vector3 keepPlayerPosition;
-    private Vector3 moveto;
 
-    
-    
     private float walkWaitTime;
     private float walkTimeToRotate;
     private bool walkPlayerInRange;
@@ -250,35 +242,36 @@ public class AIController : MonoBehaviour, Ipoolable//, IDamageble
     private void EnviromentView()
     {
         Collider[] playerInRange = Physics.OverlapSphere(transform.position, viewRadius, playerMask);
-
-            for (int i = 0; i < playerInRange.Length; i++)
+        float distanceToPlayer = Vector3.Distance(transform.position, player.transform.position);
+        if (distanceToPlayer <= viewRadius)
+        {
+            Transform _player = player.transform;
+            Vector3 dirToPlayer = (_player.position - transform.position).normalized;
+            if (Vector3.Angle(transform.forward, dirToPlayer) < viewAngle / 2)
             {
-                Transform _player = playerInRange[i].transform;
-                Vector3 dirToPlayer = (_player.position - transform.position).normalized;
-                if (Vector3.Angle(transform.forward, dirToPlayer) < viewAngle / 2)
+                if (!Physics.Raycast(transform.position, dirToPlayer, distanceToPlayer, obstacleMask))
                 {
-                        float dsToPlayer = Vector3.Distance(transform.position, _player.position);
-                        if (!Physics.Raycast(transform.position, dirToPlayer, dsToPlayer, obstacleMask))
-                        {
-                            walkPlayerInRange = true;
-                            walkIsPatrol = false;
-                        }
-                        else
-                        {
-                            walkPlayerInRange = false;
-                            walkIsPatrol = true;
-                        }
-                    }
-
-                    if (Vector3.Distance(transform.position, _player.position) > viewAngle)
-                    {
-                        walkPlayerInRange = false;
-                    }
-                    if (walkPlayerInRange)
-                    {
-                        keepPlayerPosition = player.transform.position;
-                    }
+                    walkPlayerInRange = true;
+                    walkIsPatrol = false;
+                }
+                else
+                {
+                    walkPlayerInRange = false;
+                    walkIsPatrol = true;
+                }
             }
+
+            if (Vector3.Distance(transform.position, _player.position) > viewAngle)
+            {
+                walkPlayerInRange = false;
+            }
+            if (walkPlayerInRange)
+            {
+                keepPlayerPosition = player.transform.position;
+            }
+        }
+
+            
     }
 
     private Vector3 SetRandomDestination(Vector3 pos, float radius) {
@@ -296,8 +289,5 @@ public class AIController : MonoBehaviour, Ipoolable//, IDamageble
             return Vector3.zero;
         }
         return finalPosition;
-        /*float randomX = Random.Range(patrolPointRange.min.x, patrolPointRange.max.x);
-        float randomZ = Random.Range(patrolPointRange.min.z, patrolPointRange.max.z);
-        waypoint = new Vector3(randomX, this.transform.position.y, randomZ);*/
     }
 }
