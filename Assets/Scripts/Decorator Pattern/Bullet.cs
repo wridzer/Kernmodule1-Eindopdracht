@@ -2,7 +2,7 @@
 using UnityEngine;
 
 
-public class Bullet : MonoBehaviour, IBullet, IPoolable
+public class Bullet : MonoBehaviour, IBullet
 {
     [SerializeField] private float ExplodeDamage, lifetime;
     [SerializeField] private GameObject ExplodePrefab;
@@ -12,7 +12,7 @@ public class Bullet : MonoBehaviour, IBullet, IPoolable
     public int ExplodeRadius { get; set; }
     public int BounceAmount { get; set; }
     public BulletType BulletTypes { get; set; }
-    public bool Active { get; set; }
+    public GameObjectPool pool { get; set; }
 
     private Rigidbody rb;
 
@@ -25,7 +25,8 @@ public class Bullet : MonoBehaviour, IBullet, IPoolable
     {
         lifetime -= Time.deltaTime;
         if (lifetime <= 0) {
-            Destroy(gameObject);    // OBJECTPOOL HERE
+            //Destroy(gameObject);    // OBJECTPOOL HERE
+            pool.ReturnObjectToInactivePool(this.gameObject);
         }
     }
 
@@ -83,27 +84,14 @@ public class Bullet : MonoBehaviour, IBullet, IPoolable
             else if (BounceAmount <= 0 && ExplodeRadius > 0)
             {
                 Explode();
-                Destroy(gameObject);    // OBJECTPOOL HERE
+                //Destroy(gameObject);    // OBJECTPOOL HERE
+                pool.ReturnObjectToInactivePool(this.gameObject);
             }
             else
             {
-                Destroy(gameObject);    // OBJECTPOOL HERE
+                //Destroy(gameObject);    // OBJECTPOOL HERE
+                pool.ReturnObjectToInactivePool(this.gameObject);
             }
         }
-    }
-
-    public void Init()
-    {
-        // TODO
-    }
-
-    public void OnEnableObject()
-    {
-        gameObject.SetActive(true);
-    }
-
-    public void OnDisableObject()
-    {
-        gameObject.SetActive(false);
     }
 }
