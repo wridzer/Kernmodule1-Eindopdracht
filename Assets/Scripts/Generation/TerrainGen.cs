@@ -239,8 +239,12 @@ public class CubeClass : Ipoolable {
     public void Init() {
         thisObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
     }
-    public void OnEnableObject() { }
-    public void OnDisableObject() { }
+    public void OnEnableObject() {
+        thisObject.SetActive(true);
+    }
+    public void OnDisableObject() {
+        thisObject.SetActive(false);
+    }
 }
 
 public class ChunkClass : Ipoolable {
@@ -254,6 +258,10 @@ public class ChunkClass : Ipoolable {
     public void Init() {
         thisObject = new GameObject();
     }
-    public void OnEnableObject() { }
-    public void OnDisableObject() { }
+    public void OnEnableObject() {
+        thisObject.SetActive(true);
+    }
+    public void OnDisableObject() {
+        thisObject.SetActive(false);
+    }
 }
