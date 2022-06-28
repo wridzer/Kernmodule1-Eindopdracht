@@ -7,6 +7,9 @@ public class TerrainGen : MonoBehaviour {
     [SerializeField] private int chunkSize;
     [SerializeField] private int maxBlockSize;
     [SerializeField] private int roughness;
+    [SerializeField] private int enemyAmount;
+
+    [SerializeField] private GameObject EnemyObject;
 
     [SerializeField] private GameObject player;
 
@@ -14,12 +17,15 @@ public class TerrainGen : MonoBehaviour {
     private bool cooldown = true;
     private bool generateMesh = true;
 
-    [HideInInspector] public Dictionary<Vector2Int, ChunkClass> chunks = new Dictionary<Vector2Int, ChunkClass>();
+    [HideInInspector] public Dictionary<Vector2Int, ChunkClass> chunks = new();
 
-    [HideInInspector] public ObjectPool<ChunkClass> ChunkPool = new ObjectPool<ChunkClass>();
-    [HideInInspector] public ObjectPool<CubeClass> CubePool = new ObjectPool<CubeClass>();
+    [HideInInspector] public ObjectPool<ChunkClass> ChunkPool = new();
+    [HideInInspector] public ObjectPool<CubeClass> CubePool = new();
+    [HideInInspector] public GameObjectPool EnemyPool;
 
     private void Start() {
+        EnemyPool = new(EnemyObject);
+
         CreateFirstTile();
         StartCoroutine(Cooldown(chunkSize / 10));
     }
@@ -69,7 +75,7 @@ public class TerrainGen : MonoBehaviour {
     }
 
     private void GenerateNeighbours() {
-        var loadedList = new List<Vector2Int>();
+        List<Vector2Int> loadedList = new();
 
         loadedList.Add(currentChunk);
 
@@ -79,7 +85,7 @@ public class TerrainGen : MonoBehaviour {
                 if (x == 0 && y == 0)
                     continue;
 
-                Vector2Int neighbour = new Vector2Int(currentChunk.x + x, currentChunk.y + y);
+                Vector2Int neighbour = new(currentChunk.x + x, currentChunk.y + y);
 
                 //generate new tile if there isn't one
                 if (!chunks.ContainsKey(neighbour)) {
@@ -95,7 +101,7 @@ public class TerrainGen : MonoBehaviour {
 
     private IEnumerator RemoveTiles(List<Vector2Int> stayList) {
         //list of tiles to actually be deleted
-        List<Vector2Int> toBeDeletedTiles = new List<Vector2Int>();
+        List<Vector2Int> toBeDeletedTiles = new();
 
         //get all tiles
         foreach (Vector2Int pos in chunks.Keys) {
@@ -139,16 +145,13 @@ public class TerrainGen : MonoBehaviour {
         chunks.Add(_StartingPos / (chunkSize * 2), Chunk);
 
         //Ground Plane First
-        GameObject plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
         float halfSize = chunkSize / 5;
-        plane.transform.position = new Vector3(_StartingPos.x, 1, _StartingPos.y);
-        plane.transform.localScale = new Vector3(halfSize, 1, halfSize);
+        Chunk.plane.transform.position = new Vector3(_StartingPos.x, 1, _StartingPos.y);
+        Chunk.plane.transform.localScale = new Vector3(halfSize, 1, halfSize);
 
-        plane.GetComponent<MeshRenderer>().material.SetColor("_Color", Color.black);
-        plane.transform.parent = Chunk.thisObject.transform;
-
-        List<Vector2Int> gridPositions = new List<Vector2Int>();
-        List<Vector2Int> takenPositions = new List<Vector2Int>();
+        //grid defining
+        List<Vector2Int> gridPositions = new();
+        List<Vector2Int> takenPositions = new();
 
         //Allocate data for Positions
         for (int X = 0; X < chunkSize; X++) {
@@ -216,6 +219,19 @@ public class TerrainGen : MonoBehaviour {
         return tmp;
     }
 
+    private void SpawnEnemies(GameObject Chunk) {
+        for (int i = 0; i < enemyAmount; i++) {
+            //var tmp = EnemyPool.GetObjectFromPool();
+            //var tmpScript = tmp.GetComponent<AIController>();
+            //tmpScript.Player = GameManager.instance.player;
+            //tmp.transform.position = tmpScript.SetRandomDestination(Chunk.transform.position, chunkSize / 2);
+        }
+    }
+
+    //public void DespawnEnemy(AIController enemy) {
+    //    EnemyPool.ReturnObjectToInactivePool(enemy);
+    //}
+
     IEnumerator Cooldown(float _seconds) {
         yield return new WaitForSeconds(_seconds);
         cooldown = false;
@@ -251,12 +267,17 @@ public class ChunkClass : Ipoolable {
     public bool Active { get; set; }
 
     public GameObject thisObject;
+    public GameObject plane;
     public List<CubeClass> cubes = new List<CubeClass>();
 
     public bool isDone;
 
     public void Init() {
         thisObject = new GameObject();
+
+        plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
+        plane.GetComponent<MeshRenderer>().material.SetColor("_Color", Color.black);
+        plane.transform.parent = thisObject.transform;
     }
     public void OnEnableObject() {
         thisObject.SetActive(true);
