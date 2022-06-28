@@ -9,22 +9,26 @@ public class TerrainGen : MonoBehaviour {
     [SerializeField] private int roughness;
     [SerializeField] private int enemyAmount;
 
-    [SerializeField] private GameObject EnemyObject;
+    [SerializeField] private GameObject EnemyPrefab;
+    [SerializeField] private GameObject CubePrefab;
+    [SerializeField] private GameObject ChunkPrefab;
 
     [SerializeField] private GameObject player;
 
     private Vector2Int currentChunk;
     private bool cooldown = true;
-    private bool generateMesh = true;
+    private bool generateMesh = false;
 
-    [HideInInspector] public Dictionary<Vector2Int, ChunkClass> chunks = new();
+    [HideInInspector] public Dictionary<Vector2Int, GameObject> chunks = new();
 
-    [HideInInspector] public ObjectPool<ChunkClass> ChunkPool = new();
-    [HideInInspector] public ObjectPool<CubeClass> CubePool = new();
+    [HideInInspector] public GameObjectPool ChunkPool;
+    [HideInInspector] public GameObjectPool CubePool;
     [HideInInspector] public GameObjectPool EnemyPool;
 
     private void Start() {
-        EnemyPool = new(EnemyObject);
+        ChunkPool = new(ChunkPrefab);
+        CubePool = new(CubePrefab);
+        EnemyPool = new(EnemyPrefab);
 
         CreateFirstTile();
         StartCoroutine(Cooldown(chunkSize / 10));
@@ -32,26 +36,24 @@ public class TerrainGen : MonoBehaviour {
 
     private void Update() {
         if (generateMesh) {
-            var isDone = true;
-            foreach (ChunkClass chunk in ChunkPool.activePool) {
-                if (!chunk.isDone)
-                    isDone = false;
-            }
+            GetComponent<NavMeshSurface>().BuildNavMesh();
+            generateMesh = false;
 
-            if (isDone) {
-                GetComponent<NavMeshSurface>().BuildNavMesh();
-                generateMesh = false;
+            foreach (var chunk in chunks.Values) {
+                SpawnEnemies(chunk);
             }
         }
 
         if (player == null || cooldown)
             return;
 
+        Debugging();
+
         float closestDistance = Mathf.Infinity;
         Vector2Int closestTile = Vector2Int.zero;
 
         foreach (Vector2Int pos in chunks.Keys) {
-            float dis = Vector3.Distance(player.transform.position, chunks[pos].thisObject.transform.position);
+            float dis = Vector3.Distance(player.transform.position, chunks[pos].transform.position);
             if (dis < closestDistance) {
                 closestDistance = dis;
                 closestTile = pos;
@@ -62,8 +64,13 @@ public class TerrainGen : MonoBehaviour {
             currentChunk = closestTile;
             GenerateNeighbours();
             cooldown = true;
-            generateMesh = true;
             StartCoroutine(Cooldown(chunkSize / 15));
+        }
+    }
+
+    private void Debugging() {
+        foreach (var item in EnemyPool.activePool) {
+            Debug.Log(item.transform.position);
         }
     }
 
@@ -118,14 +125,14 @@ public class TerrainGen : MonoBehaviour {
         //remove one chunk every frame - probably most intensive atm
         var count = toBeDeletedTiles.Count;
         for (int i = 0; i < count; i++) {
-            for (int j = 0; j < chunks[toBeDeletedTiles[0]].cubes.Count; j++) {
-                chunks[toBeDeletedTiles[0]].cubes[j].thisObject.transform.parent = null;
-                CubePool.ReturnObjectToInactivePool(chunks[toBeDeletedTiles[0]].cubes[j]);
+            for (int j = 1; j < chunks[toBeDeletedTiles[0]].transform.childCount - 1; j++) {
+                chunks[toBeDeletedTiles[0]].transform.GetChild(j).gameObject.SetActive(false);
+                CubePool.ReturnObjectToInactivePool(chunks[toBeDeletedTiles[0]].transform.GetChild(j).gameObject);
+                chunks[toBeDeletedTiles[0]].transform.GetChild(j).parent = null;
                 yield return new WaitForEndOfFrame();
             }
 
-            chunks[toBeDeletedTiles[0]].cubes.Clear();
-            chunks[toBeDeletedTiles[0]].isDone = false;
+            chunks[toBeDeletedTiles[0]].SetActive(false);
             ChunkPool.ReturnObjectToInactivePool(chunks[toBeDeletedTiles[0]]);
 
             chunks.Remove(toBeDeletedTiles[0]);
@@ -136,18 +143,19 @@ public class TerrainGen : MonoBehaviour {
 
     private IEnumerator CreateChunk(Vector2Int _StartingPos) {
         var Chunk = ChunkPool.GetObjectFromPool();
-        Chunk.thisObject.transform.parent = transform;
+        Chunk.transform.parent = transform;
 
         //move chunk to final position
-        Chunk.thisObject.transform.position = new Vector3(_StartingPos.x, 0, _StartingPos.y);
+        Chunk.transform.position = new Vector3(_StartingPos.x, 0, _StartingPos.y);
 
         //Add chunk to list of chunks
         chunks.Add(_StartingPos / (chunkSize * 2), Chunk);
 
         //Ground Plane First
+        GameObject plane = Chunk.transform.GetChild(0).gameObject; 
         float halfSize = chunkSize / 5;
-        Chunk.plane.transform.position = new Vector3(_StartingPos.x, 1, _StartingPos.y);
-        Chunk.plane.transform.localScale = new Vector3(halfSize, 1, halfSize);
+        plane.transform.localPosition = new Vector3(0, 1, 0);
+        plane.transform.localScale = new Vector3(halfSize, 1, halfSize);
 
         //grid defining
         List<Vector2Int> gridPositions = new();
@@ -193,16 +201,12 @@ public class TerrainGen : MonoBehaviour {
             }
         }
 
-        Chunk.isDone = true;
     }
 
-    private GameObject SpawnCube(Vector2Int _spawnPos, ChunkClass parent, float _tmpSize) {
+    private GameObject SpawnCube(Vector2Int _spawnPos, GameObject parent, float _tmpSize) {
         //Create and position Cube
-        var Spawn = CubePool.GetObjectFromPool();
-        parent.cubes.Add(Spawn);
-
-        var tmp = Spawn.thisObject;
-        tmp.transform.parent = parent.thisObject.transform;
+        var tmp = CubePool.GetObjectFromPool();
+        tmp.transform.parent = parent.transform;
         tmp.transform.position = CalcWorldPos(_spawnPos, _tmpSize * 2);
 
         //change size to predefined float
@@ -221,20 +225,24 @@ public class TerrainGen : MonoBehaviour {
 
     private void SpawnEnemies(GameObject Chunk) {
         for (int i = 0; i < enemyAmount; i++) {
-            //var tmp = EnemyPool.GetObjectFromPool();
-            //var tmpScript = tmp.GetComponent<AIController>();
-            //tmpScript.Player = GameManager.instance.player;
-            //tmp.transform.position = tmpScript.SetRandomDestination(Chunk.transform.position, chunkSize / 2);
+            var tmp = EnemyPool.GetObjectFromPool();
+            var tmpScript = tmp.GetComponent<AIController>();
+
+            tmpScript.Init(this);
+            tmpScript.player = player;
+            tmp.transform.position = tmpScript.SetRandomDestination(Chunk.transform.position, chunkSize / 2);
         }
     }
 
-    //public void DespawnEnemy(AIController enemy) {
-    //    EnemyPool.ReturnObjectToInactivePool(enemy);
-    //}
+    public void DespawnEnemy(GameObject enemy) {
+        enemy.GetComponent<AIController>().OnDisableObject();
+        EnemyPool.ReturnObjectToInactivePool(enemy);
+    }
 
     IEnumerator Cooldown(float _seconds) {
         yield return new WaitForSeconds(_seconds);
         cooldown = false;
+        generateMesh = true;
     }
 
     private Vector3 CalcWorldPos(Vector2Int _pos, float _blockSize) {
@@ -244,45 +252,5 @@ public class TerrainGen : MonoBehaviour {
 
     private int SkewedRandomRange(float _min, float _max, float _p) {
         return Mathf.RoundToInt(Mathf.Pow(Random.value, _p) * (_max - _min) + _min);
-    }
-}
-
-public class CubeClass : Ipoolable {
-    public bool Active { get; set; }
-
-    public GameObject thisObject;
-
-    public void Init() {
-        thisObject = GameObject.CreatePrimitive(PrimitiveType.Cube);
-    }
-    public void OnEnableObject() {
-        thisObject.SetActive(true);
-    }
-    public void OnDisableObject() {
-        thisObject.SetActive(false);
-    }
-}
-
-public class ChunkClass : Ipoolable {
-    public bool Active { get; set; }
-
-    public GameObject thisObject;
-    public GameObject plane;
-    public List<CubeClass> cubes = new List<CubeClass>();
-
-    public bool isDone;
-
-    public void Init() {
-        thisObject = new GameObject();
-
-        plane = GameObject.CreatePrimitive(PrimitiveType.Plane);
-        plane.GetComponent<MeshRenderer>().material.SetColor("_Color", Color.black);
-        plane.transform.parent = thisObject.transform;
-    }
-    public void OnEnableObject() {
-        thisObject.SetActive(true);
-    }
-    public void OnDisableObject() {
-        thisObject.SetActive(false);
     }
 }
