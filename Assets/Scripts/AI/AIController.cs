@@ -4,8 +4,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.AI;
 using Random = UnityEngine.Random;
-
-public class AIController : MonoBehaviour//, IDamageble
+public interface Ipoolable { 
+    bool Active { get; set; }
+    void Init();
+    void OnEnableObject();
+    void OnDisableObject();
+}
+public class AIController : MonoBehaviour, Ipoolable//, IDamageble
 {
     //float IDamageble.Health { get; set; }
     [SerializeField] private NavMeshAgent _navMeshAgent;
@@ -46,10 +51,21 @@ public class AIController : MonoBehaviour//, IDamageble
     private bool attackingPlayer;
     private bool canAttack;
     private float health;
-    //private IDamageble _damagebleImplementation;
 
-    void Start()
+    private bool _active;
+    //private IDamageble _damagebleImplementation;
+    
+
+    public bool Active
     {
+        get => _active;
+        set => _active = value;
+    }
+
+    public void OnEnableObject()
+    {
+        waypoint = SetRandomDestination(transform.position,10);
+        _navMeshAgent.SetDestination(waypoint);
         keepPlayerPosition = Vector3.zero;
         walkIsPatrol = true;
         walkCaughtPlayer = false;
@@ -62,15 +78,21 @@ public class AIController : MonoBehaviour//, IDamageble
 
         _navMeshAgent.isStopped = false;
         _navMeshAgent.speed = speedWalk;
-        SetRandomDestination(transform.position, 10);
         _navMeshAgent.SetDestination(waypoint);
         meshRenderer.GetComponent<MeshRenderer>();
     }
 
-    private void Awake()
+    public void OnDisableObject()
     {
-        
+        waypoint = Vector3.zero;
+        Stop();
     }
+
+    public void Init()
+    {
+        Init();
+    }
+    
 
     // Update is called once per frame
     void Update()
@@ -126,6 +148,7 @@ public class AIController : MonoBehaviour//, IDamageble
                 Move(speedWalk);
                 walkTimeToRotate = timeToRotate;
                 walkWaitTime = startWaitTime;
+                waypoint = SetRandomDestination(transform.position,10);
                 _navMeshAgent.SetDestination(waypoint);
             }
             else
@@ -166,7 +189,8 @@ public class AIController : MonoBehaviour//, IDamageble
             {
                 if (walkWaitTime <= 0)
                 {
-                    SetRandomDestination(transform.position, 10);
+                    waypoint = SetRandomDestination(transform.position,10);
+                    _navMeshAgent.SetDestination(waypoint);
                     Move(speedWalk);
                     walkWaitTime = startWaitTime;
                 }
@@ -261,15 +285,9 @@ public class AIController : MonoBehaviour//, IDamageble
         if (NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, radius, 1)) {
             finalPosition = hit.position;
         }
-
-        if (finalPosition == Vector3.zero)
-        {
-            
-        }
         return finalPosition;
         /*float randomX = Random.Range(patrolPointRange.min.x, patrolPointRange.max.x);
         float randomZ = Random.Range(patrolPointRange.min.z, patrolPointRange.max.z);
         waypoint = new Vector3(randomX, this.transform.position.y, randomZ);*/
-        _navMeshAgent.SetDestination(waypoint);
     }
 }
