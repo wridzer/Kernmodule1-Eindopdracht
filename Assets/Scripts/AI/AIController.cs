@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using UnityEditor.Build.Content;
 using UnityEngine;
 using UnityEngine.AI;
 using Random = UnityEngine.Random;
@@ -13,7 +14,7 @@ public interface Ipoolable {
 public class AIController : MonoBehaviour, Ipoolable//, IDamageble
 {
     //float IDamageble.Health { get; set; }
-    [SerializeField] private NavMeshAgent _navMeshAgent;
+    [SerializeField] private NavMeshAgent navMeshAgent;
     [SerializeField] private float startWaitTime = 4;
     [SerializeField] private float timeToRotate = 2;
     [SerializeField] private float speedWalk = 6;
@@ -65,7 +66,7 @@ public class AIController : MonoBehaviour, Ipoolable//, IDamageble
     public void OnEnableObject()
     {
         waypoint = SetRandomDestination(transform.position,10);
-        _navMeshAgent.SetDestination(waypoint);
+        navMeshAgent.SetDestination(waypoint);
         keepPlayerPosition = Vector3.zero;
         walkIsPatrol = true;
         walkCaughtPlayer = false;
@@ -74,11 +75,11 @@ public class AIController : MonoBehaviour, Ipoolable//, IDamageble
         walkTimeToRotate = timeToRotate;
 
         currentWaypointIndex = 0;
-        _navMeshAgent = GetComponent<NavMeshAgent>();
+        navMeshAgent = GetComponent<NavMeshAgent>();
 
-        _navMeshAgent.isStopped = false;
-        _navMeshAgent.speed = speedWalk;
-        _navMeshAgent.SetDestination(waypoint);
+        navMeshAgent.isStopped = false;
+        navMeshAgent.speed = speedWalk;
+        navMeshAgent.SetDestination(waypoint);
         meshRenderer.GetComponent<MeshRenderer>();
     }
 
@@ -91,6 +92,7 @@ public class AIController : MonoBehaviour, Ipoolable//, IDamageble
     public void Init()
     {
         Init();
+        //Player = GameManager.Instance.Player;
     }
     
 
@@ -122,7 +124,7 @@ public class AIController : MonoBehaviour, Ipoolable//, IDamageble
         if (!walkCaughtPlayer)
         {
             Move(speedRun);
-            _navMeshAgent.SetDestination(keepPlayerPosition);
+            navMeshAgent.SetDestination(keepPlayerPosition);
         }
         
         if (Vector3.Distance(transform.position, player.transform.position) <= 4.0f)
@@ -137,7 +139,7 @@ public class AIController : MonoBehaviour, Ipoolable//, IDamageble
             walkCaughtPlayer = false;
         }
         
-        if (_navMeshAgent.remainingDistance <= _navMeshAgent.stoppingDistance && !canAttack)
+        if (navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance && !canAttack)
         {
             attackingPlayer = false;
             if (walkWaitTime <= 0 && !walkCaughtPlayer && Vector3.Distance(transform.position,
@@ -149,7 +151,7 @@ public class AIController : MonoBehaviour, Ipoolable//, IDamageble
                 walkTimeToRotate = timeToRotate;
                 walkWaitTime = startWaitTime;
                 waypoint = SetRandomDestination(transform.position,10);
-                _navMeshAgent.SetDestination(waypoint);
+                navMeshAgent.SetDestination(waypoint);
             }
             else
             {
@@ -184,13 +186,13 @@ public class AIController : MonoBehaviour, Ipoolable//, IDamageble
         {
             walkPlayerNear = false;
             playerLastPosition = Vector3.zero;
-            _navMeshAgent.SetDestination(waypoint);
-            if (_navMeshAgent.remainingDistance <= _navMeshAgent.stoppingDistance)
+            navMeshAgent.SetDestination(waypoint);
+            if (navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance)
             {
                 if (walkWaitTime <= 0)
                 {
                     waypoint = SetRandomDestination(transform.position,10);
-                    _navMeshAgent.SetDestination(waypoint);
+                    navMeshAgent.SetDestination(waypoint);
                     Move(speedWalk);
                     walkWaitTime = startWaitTime;
                 }
@@ -204,13 +206,13 @@ public class AIController : MonoBehaviour, Ipoolable//, IDamageble
     }
     private void Stop()
     {
-        _navMeshAgent.isStopped = true;
-        _navMeshAgent.speed = 0;
+        navMeshAgent.isStopped = true;
+        navMeshAgent.speed = 0;
     }
     private void Move(float speed)
     {
-        _navMeshAgent.isStopped = false;
-        _navMeshAgent.speed = speed;
+        navMeshAgent.isStopped = false;
+        navMeshAgent.speed = speed;
     }
 
     private void AttackPlayer()
@@ -223,7 +225,7 @@ public class AIController : MonoBehaviour, Ipoolable//, IDamageble
 
     private void LookingPlayer(Vector3 player)
     {
-    _navMeshAgent.SetDestination(player);
+    navMeshAgent.SetDestination(player);
         if (Vector3.Distance(transform.position, player) < 0.3)
         {
             if (walkWaitTime <= 0)
@@ -231,7 +233,7 @@ public class AIController : MonoBehaviour, Ipoolable//, IDamageble
                 walkPlayerNear = false;
                 Move(speedWalk);
                 SetRandomDestination(transform.position, 10);
-                _navMeshAgent.SetDestination(waypoint);
+                navMeshAgent.SetDestination(waypoint);
                 walkWaitTime = startWaitTime;
                 walkTimeToRotate = timeToRotate;
             }
