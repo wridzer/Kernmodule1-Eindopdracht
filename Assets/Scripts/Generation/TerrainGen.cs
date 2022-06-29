@@ -43,8 +43,7 @@ public class TerrainGen : MonoBehaviour {
             generateMesh = false;
 
             foreach (var chunk in chunks.Values) {
-                //SpawnEnemies(chunk);
-                //DebugSpawn(chunk);
+                SpawnEnemies(chunk);
             }
         }
 
@@ -223,22 +222,14 @@ public class TerrainGen : MonoBehaviour {
             var tmp = EnemyPool.GetObjectFromPool();
             var tmpScript = tmp.GetComponent<AIController>();
 
-            //tmpScript.Init(this);
-            //tmpScript.player = player;
-            tmp.transform.position = SetRandomDestination(Chunk.transform.position, chunkSize);
-        }
-    }
-
-    private void DebugSpawn(GameObject Chunk) {
-        for (int i = 0; i < enemyAmount; i++) {
-            var tmp = DebugPool.GetObjectFromPool();
-
-            tmp.transform.position = SetRandomDestination(Chunk.transform.position, chunkSize);
+            tmpScript.Init(this);
+            tmpScript.player = player;
+            tmp.transform.position = tmpScript.SetRandomDestination(Chunk.transform.position, chunkSize);
         }
     }
 
     public void DespawnEnemy(GameObject enemy) {
-        //enemy.GetComponent<AIController>().OnDisableObject();
+        enemy.GetComponent<AIController>().OnDisableObject();
         EnemyPool.ReturnObjectToInactivePool(enemy);
     }
 
@@ -252,18 +243,6 @@ public class TerrainGen : MonoBehaviour {
     private Vector3 CalcWorldPos(Vector2Int _pos, float _blockSize) {
         float halfSize = _blockSize / 2;
         return new Vector3((_pos.x * 2) + halfSize - chunkSize, halfSize, (_pos.y * 2) + halfSize - chunkSize);
-    }
-
-    public Vector3 SetRandomDestination(Vector3 pos, float radius) {
-        Vector3 randomDirection = Random.insideUnitSphere * radius;
-        randomDirection += pos;
-        Vector3 finalPosition = Vector3.zero;
-
-        if (NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, radius, 1)) {
-            finalPosition = hit.position;
-        }
-
-        return finalPosition;
     }
 
     private int SkewedRandomRange(float _min, float _max, float _p) {
