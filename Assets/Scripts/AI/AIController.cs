@@ -39,18 +39,19 @@ public class AIController : MonoBehaviour//, IDamageble
 
     private float walkWaitTime;
     private float walkTimeToRotate;
-    private bool walkPlayerInRange;
-    private bool walkPlayerNear;
-    private bool walkIsPatrol;
-    private bool walkCaughtPlayer;
-    private bool attackingPlayer;
-    private bool canAttack;
+    private bool walkPlayerInRange  = true;
+    private bool walkPlayerNear  = true;
+    private bool walkIsPatrol  = true;
+    private bool walkCaughtPlayer = true;
+    private bool attackingPlayer  = true;
+    private bool canAttack  = true;
     private float health;
 
     private bool _active;
     //private IDamageble _damagebleImplementation;
     
 
+<<<<<<< Updated upstream:Assets/Scripts/AI/AIController.cs
     public bool Active
     {
         get => _active;
@@ -62,11 +63,24 @@ public class AIController : MonoBehaviour//, IDamageble
         waypoint = SetRandomDestination(transform.position,10);
         navMeshAgent.SetDestination(waypoint);
         keepPlayerPosition = Vector3.zero;
+=======
+    public void OnDisableObject() {
+        //waypoint = Vector3.zero;
+        //Stop();
+    }
+
+    public void Init(TerrainGen owner) {
+        this.owner = owner;
+>>>>>>> Stashed changes:Assets/Scripts/AIController.cs
         walkIsPatrol = true;
         walkCaughtPlayer = false;
         walkPlayerInRange = false;
+        walkCaughtPlayer = false;
+        walkPlayerNear  = false;
+        canAttack = false;
         walkWaitTime = startWaitTime;
         walkTimeToRotate = timeToRotate;
+<<<<<<< Updated upstream:Assets/Scripts/AI/AIController.cs
 
         currentWaypointIndex = 0;
         navMeshAgent = GetComponent<NavMeshAgent>();
@@ -74,6 +88,10 @@ public class AIController : MonoBehaviour//, IDamageble
         navMeshAgent.isStopped = false;
         navMeshAgent.speed = speedWalk;
         navMeshAgent.SetDestination(waypoint);
+=======
+        
+        StartCoroutine(AttachNavmesh());
+>>>>>>> Stashed changes:Assets/Scripts/AIController.cs
         meshRenderer.GetComponent<MeshRenderer>();
     }
 
@@ -83,6 +101,7 @@ public class AIController : MonoBehaviour//, IDamageble
         Stop();
     }
 
+<<<<<<< Updated upstream:Assets/Scripts/AI/AIController.cs
     public void Init()
     {
         Init();
@@ -97,6 +116,12 @@ public class AIController : MonoBehaviour//, IDamageble
         if (health <= 0)
         {
             //Destroy(gameObject);
+=======
+        var checkNav = SetRandomDestination(transform.position,5);
+        if (checkNav == Vector3.zero)
+        {
+            owner.DespawnEnemy(this.gameObject);
+>>>>>>> Stashed changes:Assets/Scripts/AIController.cs
         }
         EnviromentView();
         if (!walkIsPatrol)
@@ -118,7 +143,11 @@ public class AIController : MonoBehaviour//, IDamageble
         if (!walkCaughtPlayer)
         {
             Move(speedRun);
+<<<<<<< Updated upstream:Assets/Scripts/AI/AIController.cs
             navMeshAgent.SetDestination(keepPlayerPosition);
+=======
+            //navMeshAgent.SetDestination(player.transform.position);
+>>>>>>> Stashed changes:Assets/Scripts/AIController.cs
         }
         
         if (Vector3.Distance(transform.position, player.transform.position) <= 4.0f)
@@ -226,8 +255,13 @@ public class AIController : MonoBehaviour//, IDamageble
             {
                 walkPlayerNear = false;
                 Move(speedWalk);
+<<<<<<< Updated upstream:Assets/Scripts/AI/AIController.cs
                 SetRandomDestination(transform.position, 10);
                 navMeshAgent.SetDestination(waypoint);
+=======
+                //waypoint = SetRandomDestination(transform.position, 10);
+                //navMeshAgent.SetDestination(waypoint);
+>>>>>>> Stashed changes:Assets/Scripts/AIController.cs
                 walkWaitTime = startWaitTime;
                 walkTimeToRotate = timeToRotate;
             }
@@ -282,6 +316,7 @@ public class AIController : MonoBehaviour//, IDamageble
         if (NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, radius, 1)) {
             finalPosition = hit.position;
         }
+<<<<<<< Updated upstream:Assets/Scripts/AI/AIController.cs
 
         if (finalPosition == Vector3.zero)
         {
@@ -291,3 +326,19 @@ public class AIController : MonoBehaviour//, IDamageble
         return finalPosition;
     }
 }
+=======
+        return finalPosition;
+    }
+
+    IEnumerator AttachNavmesh()
+    {
+        yield return new WaitForSeconds(2);
+        navMeshAgent.enabled = true;
+        navMeshAgent = GetComponent<NavMeshAgent>();
+        navMeshAgent.speed = speedWalk;
+        waypoint = SetRandomDestination(transform.position, 10);
+        navMeshAgent.SetDestination(waypoint);
+        
+    }
+}
+>>>>>>> Stashed changes:Assets/Scripts/AIController.cs
