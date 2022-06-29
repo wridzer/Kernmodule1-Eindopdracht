@@ -12,7 +12,6 @@ public class TerrainGen : MonoBehaviour {
     [SerializeField] private GameObject EnemyPrefab;
     [SerializeField] private GameObject CubePrefab;
     [SerializeField] private GameObject ChunkPrefab;
-    [SerializeField] private GameObject DebugPrefab;
 
     [SerializeField] private GameObject player;
 
@@ -25,31 +24,30 @@ public class TerrainGen : MonoBehaviour {
     [HideInInspector] public GameObjectPool ChunkPool;
     [HideInInspector] public GameObjectPool CubePool;
     [HideInInspector] public GameObjectPool EnemyPool;
-    [HideInInspector] public GameObjectPool DebugPool;
 
     private void Start() {
         ChunkPool = new(ChunkPrefab);
         CubePool = new(CubePrefab);
         EnemyPool = new(EnemyPrefab);
-        DebugPool = new(DebugPrefab);
 
         CreateFirstTile();
-        StartCoroutine(Cooldown(chunkSize / 20));
+        StartCoroutine(Cooldown(chunkSize / 10));
     }
 
     private void Update() {
         if (generateMesh) {
             GetComponent<NavMeshSurface>().BuildNavMesh();
             generateMesh = false;
-
             foreach (var chunk in chunks.Values) {
-                //SpawnEnemies(chunk);
-                //DebugSpawn(chunk);
+                SpawnEnemies(chunk);
+                //Debug.Break();
             }
         }
 
         if (player == null || cooldown)
             return;
+
+        Debugging();
 
         float closestDistance = Mathf.Infinity;
         Vector2Int closestTile = Vector2Int.zero;
@@ -67,6 +65,12 @@ public class TerrainGen : MonoBehaviour {
             GenerateNeighbours();
             cooldown = true;
             StartCoroutine(Cooldown(chunkSize / 15));
+        }
+    }
+
+    private void Debugging() {
+        foreach (var item in EnemyPool.activePool) {
+            Debug.Log(item.transform.position);
         }
     }
 
@@ -121,10 +125,10 @@ public class TerrainGen : MonoBehaviour {
         //remove one chunk every frame - probably most intensive atm
         var count = toBeDeletedTiles.Count;
         for (int i = 0; i < count; i++) {
-            for (int j = chunks[toBeDeletedTiles[0]].transform.childCount; j > 1; j--) {
-                chunks[toBeDeletedTiles[0]].transform.GetChild(1).gameObject.SetActive(false);
-                CubePool.ReturnObjectToInactivePool(chunks[toBeDeletedTiles[0]].transform.GetChild(1).gameObject);
-                chunks[toBeDeletedTiles[0]].transform.GetChild(1).parent = null;
+            for (int j = 1; j < chunks[toBeDeletedTiles[0]].transform.childCount - 1; j++) {
+                chunks[toBeDeletedTiles[0]].transform.GetChild(j).gameObject.SetActive(false);
+                CubePool.ReturnObjectToInactivePool(chunks[toBeDeletedTiles[0]].transform.GetChild(j).gameObject);
+                chunks[toBeDeletedTiles[0]].transform.GetChild(j).parent = null;
                 yield return new WaitForEndOfFrame();
             }
 
@@ -142,7 +146,7 @@ public class TerrainGen : MonoBehaviour {
         Chunk.transform.parent = transform;
 
         //move chunk to final position
-        Chunk.transform.localPosition = new Vector3(_StartingPos.x, 0, _StartingPos.y);
+        Chunk.transform.position = new Vector3(_StartingPos.x, 0, _StartingPos.y);
 
         //Add chunk to list of chunks
         chunks.Add(_StartingPos / (chunkSize * 2), Chunk);
@@ -196,6 +200,7 @@ public class TerrainGen : MonoBehaviour {
                 }
             }
         }
+
     }
 
     private GameObject SpawnCube(Vector2Int _spawnPos, GameObject parent, float _tmpSize) {
@@ -223,47 +228,26 @@ public class TerrainGen : MonoBehaviour {
             var tmp = EnemyPool.GetObjectFromPool();
             var tmpScript = tmp.GetComponent<AIController>();
 
-            //tmpScript.Init(this);
-            //tmpScript.player = player;
-            tmp.transform.position = SetRandomDestination(Chunk.transform.position, chunkSize);
-        }
-    }
-
-    private void DebugSpawn(GameObject Chunk) {
-        for (int i = 0; i < enemyAmount; i++) {
-            var tmp = DebugPool.GetObjectFromPool();
-
-            tmp.transform.position = SetRandomDestination(Chunk.transform.position, chunkSize);
+            tmpScript.Init(this);
+            tmpScript.player = player;
+            tmp.transform.position = tmpScript.SetRandomDestination(Chunk.transform.localPosition, chunkSize / 2);
         }
     }
 
     public void DespawnEnemy(GameObject enemy) {
-        //enemy.GetComponent<AIController>().OnDisableObject();
+        enemy.GetComponent<AIController>().OnDisableObject();
         EnemyPool.ReturnObjectToInactivePool(enemy);
     }
 
     IEnumerator Cooldown(float _seconds) {
-        yield return new WaitForSeconds(_seconds / 2);
-        generateMesh = true;
-        yield return new WaitForSeconds(_seconds / 2);
+        yield return new WaitForSeconds(_seconds);
         cooldown = false;
+        generateMesh = true;
     }
 
     private Vector3 CalcWorldPos(Vector2Int _pos, float _blockSize) {
         float halfSize = _blockSize / 2;
         return new Vector3((_pos.x * 2) + halfSize - chunkSize, halfSize, (_pos.y * 2) + halfSize - chunkSize);
-    }
-
-    public Vector3 SetRandomDestination(Vector3 pos, float radius) {
-        Vector3 randomDirection = Random.insideUnitSphere * radius;
-        randomDirection += pos;
-        Vector3 finalPosition = Vector3.zero;
-
-        if (NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, radius, 1)) {
-            finalPosition = hit.position;
-        }
-
-        return finalPosition;
     }
 
     private int SkewedRandomRange(float _min, float _max, float _p) {
