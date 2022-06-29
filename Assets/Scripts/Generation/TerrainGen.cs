@@ -43,7 +43,7 @@ public class TerrainGen : MonoBehaviour {
             generateMesh = false;
 
             foreach (var chunk in chunks.Values) {
-                SpawnEnemies(chunk);
+                StartCoroutine(SpawnEnemies(chunk));
             }
         }
 
@@ -65,7 +65,7 @@ public class TerrainGen : MonoBehaviour {
             currentChunk = closestTile;
             GenerateNeighbours();
             cooldown = true;
-            StartCoroutine(Cooldown(chunkSize / 15));
+            StartCoroutine(Cooldown(chunkSize / 10));
         }
     }
 
@@ -217,7 +217,7 @@ public class TerrainGen : MonoBehaviour {
         return tmp;
     }
 
-    private void SpawnEnemies(GameObject Chunk) {
+    private IEnumerator SpawnEnemies(GameObject Chunk) {
         for (int i = 0; i < enemyAmount; i++) {
             var tmp = EnemyPool.GetObjectFromPool();
             var tmpScript = tmp.GetComponent<AIController>();
@@ -225,6 +225,8 @@ public class TerrainGen : MonoBehaviour {
             tmpScript.Init(this);
             tmpScript.player = player;
             tmp.transform.position = tmpScript.SetRandomDestination(Chunk.transform.position, chunkSize);
+
+            yield return new WaitForEndOfFrame();
         }
     }
 

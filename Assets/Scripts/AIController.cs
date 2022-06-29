@@ -50,21 +50,18 @@ public class AIController : MonoBehaviour {
 
     public void Init(TerrainGen owner) {
         this.owner = owner;
-        waypoint = SetRandomDestination(transform.position, 10);
-        navMeshAgent.SetDestination(waypoint);
+        meshRenderer.GetComponent<MeshRenderer>();
         keepPlayerPosition = Vector3.zero;
         walkIsPatrol = true;
         walkWaitTime = startWaitTime;
         walkTimeToRotate = timeToRotate;
-
-        navMeshAgent = GetComponent<NavMeshAgent>();
-
-        navMeshAgent.isStopped = false;
-        navMeshAgent.speed = speedWalk;
-        meshRenderer.GetComponent<MeshRenderer>();
+        StartCoroutine(AttachNavMesh());
     }
 
     void Update() {
+        if (!navMeshAgent.isOnNavMesh)
+            return;
+
         if (health <= 0) {
             //owner.DespawnEnemy(this.gameObject);
         }
@@ -137,8 +134,9 @@ public class AIController : MonoBehaviour {
         else {
             walkPlayerNear = false;
             playerLastPosition = player.transform.position;
-            waypoint = SetRandomDestination(transform.position, 10);
-            navMeshAgent.SetDestination(waypoint);
+            //waypoint = SetRandomDestination(transform.position, 10);
+            //navMeshAgent.SetDestination(waypoint);
+
             if (navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance) {
                 if (walkWaitTime <= 0) {
                     waypoint = SetRandomDestination(transform.position, 10);
@@ -190,6 +188,7 @@ public class AIController : MonoBehaviour {
     }
 
     private void EnviromentView() {
+        Collider[] playerInRange = Physics.OverlapSphere(transform.position, viewRadius, playerMask);
         float distanceToPlayer = Vector3.Distance(transform.position, player.transform.position);
 
         if (distanceToPlayer <= viewRadius) {
@@ -232,5 +231,14 @@ public class AIController : MonoBehaviour {
             return Vector3.zero;
         }
         return finalPosition;
+    }
+
+    IEnumerator AttachNavMesh() {
+        yield return new WaitForSeconds(1);
+        navMeshAgent = GetComponent<NavMeshAgent>();
+        navMeshAgent.enabled = true;
+        navMeshAgent.speed = speedWalk;
+        waypoint = SetRandomDestination(transform.position, 10);
+        navMeshAgent.SetDestination(waypoint);
     }
 }
