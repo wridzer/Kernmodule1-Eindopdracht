@@ -12,7 +12,6 @@ public class TerrainGen : MonoBehaviour {
     [SerializeField] private GameObject EnemyPrefab;
     [SerializeField] private GameObject CubePrefab;
     [SerializeField] private GameObject ChunkPrefab;
-    [SerializeField] private GameObject DebugPrefab;
 
     [SerializeField] private GameObject player;
 
@@ -20,18 +19,17 @@ public class TerrainGen : MonoBehaviour {
     private bool cooldown = true;
     private bool generateMesh = false;
 
-    [HideInInspector] public Dictionary<Vector2Int, GameObject> chunks = new();
+    private Dictionary<Vector2Int, GameObject> chunks = new();
+    private Dictionary<Vector2Int, bool> chunksHaveEnemies = new();
 
-    [HideInInspector] public GameObjectPool ChunkPool;
-    [HideInInspector] public GameObjectPool CubePool;
-    [HideInInspector] public GameObjectPool EnemyPool;
-    [HideInInspector] public GameObjectPool DebugPool;
+    private GameObjectPool ChunkPool;
+    private GameObjectPool CubePool;
+    private GameObjectPool EnemyPool;
 
     private void Start() {
         ChunkPool = new(ChunkPrefab);
         CubePool = new(CubePrefab);
         EnemyPool = new(EnemyPrefab);
-        DebugPool = new(DebugPrefab);
 
         CreateFirstTile();
         StartCoroutine(Cooldown(chunkSize / 20));
@@ -42,8 +40,12 @@ public class TerrainGen : MonoBehaviour {
             GetComponent<NavMeshSurface>().BuildNavMesh();
             generateMesh = false;
 
-            foreach (var chunk in chunks.Values) {
-                StartCoroutine(SpawnEnemies(chunk));
+            foreach (var chunk in chunks.Keys) {
+                if (chunksHaveEnemies[chunk])
+                    continue;
+                
+                StartCoroutine(SpawnEnemies(chunks[chunk]));
+                chunksHaveEnemies[chunk] = true;
             }
         }
 
@@ -127,6 +129,7 @@ public class TerrainGen : MonoBehaviour {
                 yield return new WaitForEndOfFrame();
             }
 
+            chunksHaveEnemies[toBeDeletedTiles[0]] = false;
             chunks[toBeDeletedTiles[0]].SetActive(false);
             ChunkPool.ReturnObjectToInactivePool(chunks[toBeDeletedTiles[0]]);
 
@@ -145,6 +148,7 @@ public class TerrainGen : MonoBehaviour {
 
         //Add chunk to list of chunks
         chunks.Add(_StartingPos / (chunkSize * 2), Chunk);
+        chunksHaveEnemies.Add(_StartingPos / (chunkSize * 2), false);
 
         //Ground Plane First
         GameObject plane = Chunk.transform.GetChild(0).gameObject; 
