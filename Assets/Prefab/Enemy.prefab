@@ -41,7 +41,7 @@ NavMeshAgent:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 9107576173227627440}
-  m_Enabled: 1
+  m_Enabled: 0
   m_AgentTypeID: 0
   m_Radius: 0.5
   m_Speed: 3.5
@@ -68,6 +68,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 1a0c7de4a868d2942bd7e5581ec218ea, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  navMeshAgent: {fileID: 9107576173227627453}
+  startWaitTime: 4
+  timeToRotate: 2
+  speedWalk: 6
+  speedRun: 9
+  damage: 10
+  viewRadius: 10
+  viewAngle: 75
+  playerMask:
+    serializedVersion: 2
+    m_Bits: 0
+  obstacleMask:
+    serializedVersion: 2
+    m_Bits: 0
+  agro: {fileID: 2100000, guid: 20f8bf890d0fd08418fce92980365142, type: 2}
+  passive: {fileID: 2100000, guid: 1da66c53ab3e4aa45b4dba7e93818e96, type: 2}
+  meshRenderer: {fileID: 9107576173336861055}
+  waypoint: {x: 0, y: 0, z: 0}
+  player: {fileID: 0}
+  owner: {fileID: 0}
 --- !u!1 &9107576173336861042
 GameObject:
   m_ObjectHideFlags: 0

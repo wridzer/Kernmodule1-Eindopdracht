@@ -19,11 +19,12 @@ public class TerrainGen : MonoBehaviour {
     private bool cooldown = true;
     private bool generateMesh = false;
 
-    [HideInInspector] public Dictionary<Vector2Int, GameObject> chunks = new();
+    private Dictionary<Vector2Int, GameObject> chunks = new();
+    private Dictionary<Vector2Int, bool> chunksHaveEnemies = new();
 
-    [HideInInspector] public GameObjectPool ChunkPool;
-    [HideInInspector] public GameObjectPool CubePool;
-    [HideInInspector] public GameObjectPool EnemyPool;
+    private GameObjectPool ChunkPool;
+    private GameObjectPool CubePool;
+    private GameObjectPool EnemyPool;
 
     private void Start() {
         ChunkPool = new(ChunkPrefab);
@@ -31,23 +32,25 @@ public class TerrainGen : MonoBehaviour {
         EnemyPool = new(EnemyPrefab);
 
         CreateFirstTile();
-        StartCoroutine(Cooldown(chunkSize / 10));
+        StartCoroutine(Cooldown(chunkSize / 20));
     }
 
     private void Update() {
         if (generateMesh) {
             GetComponent<NavMeshSurface>().BuildNavMesh();
             generateMesh = false;
-            foreach (var chunk in chunks.Values) {
-                SpawnEnemies(chunk);
-                //Debug.Break();
+
+            foreach (var chunk in chunks.Keys) {
+                if (chunksHaveEnemies[chunk])
+                    continue;
+                
+                StartCoroutine(SpawnEnemies(chunks[chunk]));
+                chunksHaveEnemies[chunk] = true;
             }
         }
 
         if (player == null || cooldown)
             return;
-
-        Debugging();
 
         float closestDistance = Mathf.Infinity;
         Vector2Int closestTile = Vector2Int.zero;
@@ -64,13 +67,7 @@ public class TerrainGen : MonoBehaviour {
             currentChunk = closestTile;
             GenerateNeighbours();
             cooldown = true;
-            StartCoroutine(Cooldown(chunkSize / 15));
-        }
-    }
-
-    private void Debugging() {
-        foreach (var item in EnemyPool.activePool) {
-            Debug.Log(item.transform.position);
+            StartCoroutine(Cooldown(chunkSize / 10));
         }
     }
 
@@ -125,13 +122,14 @@ public class TerrainGen : MonoBehaviour {
         //remove one chunk every frame - probably most intensive atm
         var count = toBeDeletedTiles.Count;
         for (int i = 0; i < count; i++) {
-            for (int j = 1; j < chunks[toBeDeletedTiles[0]].transform.childCount - 1; j++) {
-                chunks[toBeDeletedTiles[0]].transform.GetChild(j).gameObject.SetActive(false);
-                CubePool.ReturnObjectToInactivePool(chunks[toBeDeletedTiles[0]].transform.GetChild(j).gameObject);
-                chunks[toBeDeletedTiles[0]].transform.GetChild(j).parent = null;
+            for (int j = chunks[toBeDeletedTiles[0]].transform.childCount; j > 1; j--) {
+                chunks[toBeDeletedTiles[0]].transform.GetChild(1).gameObject.SetActive(false);
+                CubePool.ReturnObjectToInactivePool(chunks[toBeDeletedTiles[0]].transform.GetChild(1).gameObject);
+                chunks[toBeDeletedTiles[0]].transform.GetChild(1).parent = null;
                 yield return new WaitForEndOfFrame();
             }
 
+            chunksHaveEnemies[toBeDeletedTiles[0]] = false;
             chunks[toBeDeletedTiles[0]].SetActive(false);
             ChunkPool.ReturnObjectToInactivePool(chunks[toBeDeletedTiles[0]]);
 
@@ -146,10 +144,11 @@ public class TerrainGen : MonoBehaviour {
         Chunk.transform.parent = transform;
 
         //move chunk to final position
-        Chunk.transform.position = new Vector3(_StartingPos.x, 0, _StartingPos.y);
+        Chunk.transform.localPosition = new Vector3(_StartingPos.x, 0, _StartingPos.y);
 
         //Add chunk to list of chunks
         chunks.Add(_StartingPos / (chunkSize * 2), Chunk);
+        chunksHaveEnemies.Add(_StartingPos / (chunkSize * 2), false);
 
         //Ground Plane First
         GameObject plane = Chunk.transform.GetChild(0).gameObject; 
@@ -200,7 +199,6 @@ public class TerrainGen : MonoBehaviour {
                 }
             }
         }
-
     }
 
     private GameObject SpawnCube(Vector2Int _spawnPos, GameObject parent, float _tmpSize) {
@@ -223,14 +221,16 @@ public class TerrainGen : MonoBehaviour {
         return tmp;
     }
 
-    private void SpawnEnemies(GameObject Chunk) {
+    private IEnumerator SpawnEnemies(GameObject Chunk) {
         for (int i = 0; i < enemyAmount; i++) {
             var tmp = EnemyPool.GetObjectFromPool();
             var tmpScript = tmp.GetComponent<AIController>();
 
             tmpScript.Init(this);
             tmpScript.player = player;
-            tmp.transform.position = tmpScript.SetRandomDestination(Chunk.transform.localPosition, chunkSize / 2);
+            tmp.transform.position = tmpScript.SetRandomDestination(Chunk.transform.position, chunkSize);
+
+            yield return new WaitForEndOfFrame();
         }
     }
 
@@ -240,9 +240,10 @@ public class TerrainGen : MonoBehaviour {
     }
 
     IEnumerator Cooldown(float _seconds) {
-        yield return new WaitForSeconds(_seconds);
-        cooldown = false;
+        yield return new WaitForSeconds(_seconds / 2);
         generateMesh = true;
+        yield return new WaitForSeconds(_seconds / 2);
+        cooldown = false;
     }
 
     private Vector3 CalcWorldPos(Vector2Int _pos, float _blockSize) {
