@@ -1604,6 +1604,10 @@ MonoBehaviour:
   chunkSize: 50
   maxBlockSize: 30
   roughness: 2
+  enemyAmount: 0
+  EnemyPrefab: {fileID: 0}
+  CubePrefab: {fileID: 0}
+  ChunkPrefab: {fileID: 0}
   player: {fileID: 1859586767}
 --- !u!4 &1541952538
 Transform:

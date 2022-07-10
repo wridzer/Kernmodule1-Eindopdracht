@@ -1,13 +1,11 @@
 using System;
-using System.Buffers;
 using System.Collections;
 using System.Collections.Generic;
-using UnityEditor.Build.Content;
 using UnityEngine;
 using UnityEngine.AI;
 using Random = UnityEngine.Random;
 
-public class AIController : MonoBehaviour//, IDamageble
+public class AIController : MonoBehaviour, IDamageble
 {
     //float IDamageble.Health { get; set; }
     [SerializeField] private NavMeshAgent navMeshAgent;
@@ -19,81 +17,35 @@ public class AIController : MonoBehaviour//, IDamageble
 
     [SerializeField] private float viewRadius = 10;
     [SerializeField] private float viewAngle = 75;
-    
+
     [SerializeField] private LayerMask playerMask;
     [SerializeField] private LayerMask obstacleMask;
-    
-    [SerializeField]private Material agro;
-    [SerializeField]private Material passive;
-    [SerializeField]private MeshRenderer meshRenderer;
-    
-    [SerializeField]private GameObject player;
-    [SerializeField]private Vector3 waypoint;
 
-    //[HideInInspector] public TerrainGen owner;
-    
-    private int currentWaypointIndex;
+    [SerializeField] private Material agro;
+    [SerializeField] private Material passive;
+    [SerializeField] private MeshRenderer meshRenderer;
+
+    [SerializeField] private Vector3 waypoint;
+
+    [HideInInspector] public GameObject player;
+    [HideInInspector] public TerrainGen owner;
 
     private Vector3 playerLastPosition = Vector3.zero;
     private Vector3 keepPlayerPosition;
 
     private float walkWaitTime;
     private float walkTimeToRotate;
-    private bool walkPlayerInRange  = true;
-    private bool walkPlayerNear  = true;
-    private bool walkIsPatrol  = true;
-    private bool walkCaughtPlayer = true;
-    private bool attackingPlayer  = true;
-    private bool canAttack  = true;
-    private float health;
+    private bool walkPlayerInRange = false;
+    private bool walkPlayerNear = false;
+    private bool walkIsPatrol = false;
+    private bool walkCaughtPlayer = false;
+    private bool attackingPlayer = false;
+    private bool canAttack = false;
+    private float health = 100;
 
-    private bool _active;
+    float IDamageble.Health { get => health; set { } }
+
     //private IDamageble _damagebleImplementation;
-    
-
-<<<<<<< Updated upstream:Assets/Scripts/AI/AIController.cs
-    public bool Active
-    {
-        get => _active;
-        set => _active = value;
-    }
-
-    public void OnEnableObject()
-    {
-        waypoint = SetRandomDestination(transform.position,10);
-        navMeshAgent.SetDestination(waypoint);
-        keepPlayerPosition = Vector3.zero;
-=======
-    public void OnDisableObject() {
-        //waypoint = Vector3.zero;
-        //Stop();
-    }
-
-    public void Init(TerrainGen owner) {
-        this.owner = owner;
->>>>>>> Stashed changes:Assets/Scripts/AIController.cs
-        walkIsPatrol = true;
-        walkCaughtPlayer = false;
-        walkPlayerInRange = false;
-        walkCaughtPlayer = false;
-        walkPlayerNear  = false;
-        canAttack = false;
-        walkWaitTime = startWaitTime;
-        walkTimeToRotate = timeToRotate;
-<<<<<<< Updated upstream:Assets/Scripts/AI/AIController.cs
-
-        currentWaypointIndex = 0;
-        navMeshAgent = GetComponent<NavMeshAgent>();
-
-        navMeshAgent.isStopped = false;
-        navMeshAgent.speed = speedWalk;
-        navMeshAgent.SetDestination(waypoint);
-=======
-        
-        StartCoroutine(AttachNavmesh());
->>>>>>> Stashed changes:Assets/Scripts/AIController.cs
-        meshRenderer.GetComponent<MeshRenderer>();
-    }
 
     public void OnDisableObject()
     {
@@ -101,29 +53,28 @@ public class AIController : MonoBehaviour//, IDamageble
         Stop();
     }
 
-<<<<<<< Updated upstream:Assets/Scripts/AI/AIController.cs
-    public void Init()
+    public void Init(TerrainGen owner)
     {
-        Init();
-        //player = GameManager.instance.player;
+        this.owner = owner;
+        meshRenderer.GetComponent<MeshRenderer>();
+        keepPlayerPosition = Vector3.zero;
+        walkIsPatrol = true;
+        walkWaitTime = startWaitTime;
+        walkTimeToRotate = timeToRotate;
+        StartCoroutine(AttachNavMesh());
     }
-    
 
-    // Update is called once per frame
     void Update()
     {
-        Debug.Log(Vector3.Distance(transform.position, player.transform.position));
+        if (!navMeshAgent.isOnNavMesh) { return; }
+
         if (health <= 0)
         {
-            //Destroy(gameObject);
-=======
-        var checkNav = SetRandomDestination(transform.position,5);
-        if (checkNav == Vector3.zero)
-        {
             owner.DespawnEnemy(this.gameObject);
->>>>>>> Stashed changes:Assets/Scripts/AIController.cs
         }
+
         EnviromentView();
+
         if (!walkIsPatrol)
         {
             Chasing();
@@ -138,30 +89,26 @@ public class AIController : MonoBehaviour//, IDamageble
     {
         meshRenderer.material = agro;
         walkPlayerNear = false;
-        playerLastPosition = Vector3.zero;
+        playerLastPosition = player.transform.position;
 
         if (!walkCaughtPlayer)
         {
             Move(speedRun);
-<<<<<<< Updated upstream:Assets/Scripts/AI/AIController.cs
-            navMeshAgent.SetDestination(keepPlayerPosition);
-=======
-            //navMeshAgent.SetDestination(player.transform.position);
->>>>>>> Stashed changes:Assets/Scripts/AIController.cs
+            navMeshAgent.SetDestination(player.transform.position);
         }
-        
+
         if (Vector3.Distance(transform.position, player.transform.position) <= 4.0f)
         {
             walkCaughtPlayer = true;
             canAttack = true;
-            AttackPlayer();
+            StartCoroutine(AttackPlayer());
         }
         else
         {
             canAttack = false;
             walkCaughtPlayer = false;
         }
-        
+
         if (navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance && !canAttack)
         {
             attackingPlayer = false;
@@ -173,7 +120,7 @@ public class AIController : MonoBehaviour//, IDamageble
                 Move(speedWalk);
                 walkTimeToRotate = timeToRotate;
                 walkWaitTime = startWaitTime;
-                waypoint = SetRandomDestination(transform.position,10);
+                waypoint = SetRandomDestination(transform.position, 10);
                 navMeshAgent.SetDestination(waypoint);
             }
             else
@@ -184,11 +131,11 @@ public class AIController : MonoBehaviour//, IDamageble
                     Stop();
                     walkCaughtPlayer = false;
                     walkWaitTime -= Time.deltaTime;
-                    
-                } 
+                }
             }
         }
     }
+
     private void Patroling()
     {
         meshRenderer.material = passive;
@@ -208,13 +155,15 @@ public class AIController : MonoBehaviour//, IDamageble
         else
         {
             walkPlayerNear = false;
-            playerLastPosition = Vector3.zero;
-            navMeshAgent.SetDestination(waypoint);
+            playerLastPosition = player.transform.position;
+            //waypoint = SetRandomDestination(transform.position, 10);
+            //navMeshAgent.SetDestination(waypoint);
+
             if (navMeshAgent.remainingDistance <= navMeshAgent.stoppingDistance)
             {
                 if (walkWaitTime <= 0)
                 {
-                    waypoint = SetRandomDestination(transform.position,10);
+                    waypoint = SetRandomDestination(transform.position, 10);
                     navMeshAgent.SetDestination(waypoint);
                     Move(speedWalk);
                     walkWaitTime = startWaitTime;
@@ -227,41 +176,39 @@ public class AIController : MonoBehaviour//, IDamageble
             }
         }
     }
+
     private void Stop()
     {
         navMeshAgent.isStopped = true;
         navMeshAgent.speed = 0;
     }
+
     private void Move(float speed)
     {
         navMeshAgent.isStopped = false;
         navMeshAgent.speed = speed;
     }
 
-    private void AttackPlayer()
+    private IEnumerator AttackPlayer()
     {
+        yield return new WaitForSeconds(1);
         Stop();
         attackingPlayer = true;
-        //walkCaughtPlayer = true;
-        //player.GetComponent<IDamageble>()?.TakeDamage(damage);
+        walkCaughtPlayer = true;
+        player.GetComponent<IDamageble>()?.TakeDamage(damage);
     }
 
     private void LookingPlayer(Vector3 player)
     {
-    navMeshAgent.SetDestination(player);
+        navMeshAgent.SetDestination(player);
         if (Vector3.Distance(transform.position, player) < 0.3)
         {
             if (walkWaitTime <= 0)
             {
                 walkPlayerNear = false;
                 Move(speedWalk);
-<<<<<<< Updated upstream:Assets/Scripts/AI/AIController.cs
-                SetRandomDestination(transform.position, 10);
+                waypoint = SetRandomDestination(transform.position, 10);
                 navMeshAgent.SetDestination(waypoint);
-=======
-                //waypoint = SetRandomDestination(transform.position, 10);
-                //navMeshAgent.SetDestination(waypoint);
->>>>>>> Stashed changes:Assets/Scripts/AIController.cs
                 walkWaitTime = startWaitTime;
                 walkTimeToRotate = timeToRotate;
             }
@@ -277,16 +224,21 @@ public class AIController : MonoBehaviour//, IDamageble
     {
         Collider[] playerInRange = Physics.OverlapSphere(transform.position, viewRadius, playerMask);
         float distanceToPlayer = Vector3.Distance(transform.position, player.transform.position);
+
         if (distanceToPlayer <= viewRadius)
         {
             Transform _player = player.transform;
             Vector3 dirToPlayer = (_player.position - transform.position).normalized;
+
             if (Vector3.Angle(transform.forward, dirToPlayer) < viewAngle / 2)
             {
-                if (!Physics.Raycast(transform.position, dirToPlayer, distanceToPlayer, obstacleMask))
+                if (!Physics.Raycast(transform.position, dirToPlayer, out var hit))
                 {
-                    walkPlayerInRange = true;
-                    walkIsPatrol = false;
+                    if (hit.collider.CompareTag("Player"))
+                    {
+                        walkPlayerInRange = true;
+                        walkIsPatrol = false;
+                    }
                 }
                 else
                 {
@@ -294,51 +246,44 @@ public class AIController : MonoBehaviour//, IDamageble
                     walkIsPatrol = true;
                 }
             }
-
-            if (Vector3.Distance(transform.position, _player.position) > viewAngle)
-            {
-                walkPlayerInRange = false;
-            }
-            if (walkPlayerInRange)
-            {
-                keepPlayerPosition = player.transform.position;
-            }
+        }
+        else
+        {
+            walkPlayerInRange = false;
         }
 
-            
+        if (walkPlayerInRange)
+        {
+            keepPlayerPosition = player.transform.position;
+        }
     }
 
-    private Vector3 SetRandomDestination(Vector3 pos, float radius) {
+    public Vector3 SetRandomDestination(Vector3 pos, float radius)
+    {
         Vector3 randomDirection = Random.insideUnitSphere * radius;
         randomDirection += pos;
         Vector3 finalPosition = Vector3.zero;
 
-        if (NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, radius, 1)) {
+        if (NavMesh.SamplePosition(randomDirection, out NavMeshHit hit, radius, 1))
+        {
             finalPosition = hit.position;
         }
-<<<<<<< Updated upstream:Assets/Scripts/AI/AIController.cs
 
         if (finalPosition == Vector3.zero)
         {
-            //owner.DespawnEnemy(this);
+            owner.DespawnEnemy(this.gameObject);
             return Vector3.zero;
         }
         return finalPosition;
     }
-}
-=======
-        return finalPosition;
-    }
 
-    IEnumerator AttachNavmesh()
+    IEnumerator AttachNavMesh()
     {
-        yield return new WaitForSeconds(2);
-        navMeshAgent.enabled = true;
+        yield return new WaitForSeconds(1);
         navMeshAgent = GetComponent<NavMeshAgent>();
+        navMeshAgent.enabled = true;
         navMeshAgent.speed = speedWalk;
         waypoint = SetRandomDestination(transform.position, 10);
         navMeshAgent.SetDestination(waypoint);
-        
     }
 }
->>>>>>> Stashed changes:Assets/Scripts/AIController.cs
